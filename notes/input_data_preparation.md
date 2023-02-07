@@ -23,13 +23,13 @@ The configuration file for the pileup must have the structure:
 input: "input_fld"
 output: "output_fld"
 pileups:
-    ref_1.fa:
-    - "reads_1.fastq.gz"
-    - "reads_2.fastq.gz"
+    ref_1:
+    - "sample_1"
+    - "sample_2"
     - ...
-    ref_2.fa:
-    - "reads_1.fastq.gz"
-    - "reads_2.fastq.gz"
+    ref_2:
+    - "sample_1"
+    - "sample_2"
     - ...
 ```
 
