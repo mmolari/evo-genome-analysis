@@ -1,13 +1,13 @@
 rule map_reads:
     input:
-        fa=f"{in_fld}/reads/{read_id}.fastq.gz",
-        ref=f"{inf_fld}/references/{ref_id}.fa",
+        fa=in_fld + "/reads/{read_id}.fastq.gz",
+        ref=in_fld + "/references/{ref_id}.fa",
     output:
-        sam=f"{out_fld}/mapped_reads/{ref_id}/{read_id}.sam",
-        bam=f"{out_fld}/mapped_reads/{ref_id}/{read_id}.bam",
-        bai=f"{out_fld}/mapped_reads/{ref_id}/{read_id}.bam.bai",
+        sam=out_fld + "/mapped_reads/{ref_id}/{read_id}.sam",
+        bam=out_fld + "/mapped_reads/{ref_id}/{read_id}.bam",
+        bai=out_fld + "/mapped_reads/{ref_id}/{read_id}.bam.bai",
     conda:
-        "conda_envs/pileup.yml"
+        "../conda_envs/pileup.yml"
     shell:
         """
         minimap2 -a -x map-ont {input.ref} {input.fa} > {output.sam}

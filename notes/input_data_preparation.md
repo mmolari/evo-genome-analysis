@@ -32,3 +32,8 @@ pileups:
     - "reads_2.fastq.gz"
     - ...
 ```
+
+this part of the pipeline can be run with:
+```bash
+snakemake --config run_config=myconfig.yml
+```

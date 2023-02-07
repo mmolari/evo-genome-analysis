@@ -1,0 +1,3 @@
+use-conda: True
+rerun-incomplete: True
+conda-frontend: "mamba"
