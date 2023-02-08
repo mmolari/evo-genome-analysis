@@ -6,3 +6,5 @@ temporary run command for testing:
 ```bash
 snakemake -c1 --profile local --config run_config=test_data/pileup_params.yml
 ```
+
+## setup
