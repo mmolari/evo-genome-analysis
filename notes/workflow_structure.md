@@ -44,13 +44,13 @@ For the **pileup** part, the config folder contains pairs of reference fasta fil
 ```yaml
 input: "input_fld"
 output: "output_fld"
-ref_1.fa:
-  - "reads_1.fastq.gz"
-  - "reads_2.fastq.gz"
+ref_1:
+  - "reads_1"
+  - "reads_2"
   - ...
-ref_2.fa:
-  - "reads_1.fastq.gz"
-  - "reads_2.fastq.gz"
+ref_2:
+  - "reads_1"
+  - "reads_2"
   - ...
 ```
 

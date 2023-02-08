@@ -1,4 +1,4 @@
-# input preparation
+# input data preparation
 
 The input folder must have the following structure:
 
@@ -18,6 +18,8 @@ The name of the reads and reference files is arbitrary, but the extensions must 
 
 The name of records in reference files must be short (less than 20 characters).
 
+## pileup configuration file
+
 The configuration file for the pileup must have the structure:
 ```yaml
 input: "input_fld"
@@ -33,7 +35,16 @@ pileups:
     - ...
 ```
 
-this part of the pipeline can be run with:
+this file is passed as input in the pipeline as `run_config` parameter using the `--config` flag:
 ```bash
 snakemake --config run_config=myconfig.yml
 ```
+
+Moreover the general workflow `config.yaml` file more options can be controlled:
+```yaml
+pileup:
+    qual_min: 15
+    clip_minL: 100
+```
+- `qual_min` controls the minimum quality of reads to be kept in the pileup.
+- `clip_minL` controls the minimum length of clips to be saved in the clipped reads dictionary.

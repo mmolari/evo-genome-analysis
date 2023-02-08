@@ -1,3 +1,6 @@
+pileup_config = config["pileup"]
+
+
 rule map_reads:
     input:
         fa=in_fld + "/reads/{read_id}.fastq.gz",
@@ -40,8 +43,8 @@ rule build_pileup:
         insertions=out_fld + "/pileup/{ref_id}/{rec_id}/{read_id}/insertions.pkl.gz",
         clips=out_fld + "/pileup/{ref_id}/{rec_id}/{read_id}/clips.pkl.gz",
     params:
-        min_q=config["qual_min"],
-        min_L=config["clip_minL"],
+        min_q=pileup_config["qual_min"],
+        min_L=pileup_config["clip_minL"],
         out_dir=lambda w: out_fld + f"/pileup/{w.ref_id}/{w.rec_id}/{w.read_id}",
     conda:
         "../conda_envs/pileup.yml"

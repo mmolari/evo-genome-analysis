@@ -1,2 +1,3 @@
-qual_min: 15
-clip_minL: 100
+pileup:
+  qual_min: 15
+  clip_minL: 100
