@@ -172,7 +172,7 @@ def dump_allele_counts(dirname, ac, suffix=""):
             raise "creating directory failed"
 
     refname, ac_array, insertions, clips, clip_seqs = ac
-    np.savez_compressed(dirname + "allele_counts" + suffix + ".npz", ac_array)
+    np.savez_compressed(dirname + "allele_counts" + suffix + ".npz", pileup=ac_array)
     with gzip.open(dirname + "insertions" + suffix + ".pkl.gz", "w") as outfile:
         pickle.dump({k: dict(v) for k, v in insertions.items()}, outfile)
 

@@ -3,7 +3,7 @@ pileup_config = config["pileup"]
 
 rule map_reads:
     input:
-        fa=in_fld + "/reads/{sample_id}.fastq.gz",
+        fastq=in_fld + "/reads/{sample_id}.fastq.gz",
         ref=in_fld + "/references/{ref_id}.fa",
     output:
         sam=out_fld + "/mapped_reads/{ref_id}/{sample_id}.sam",
@@ -13,7 +13,7 @@ rule map_reads:
         "../conda_envs/pileup.yml"
     shell:
         """
-        minimap2 -a -x map-ont {input.ref} {input.fa} > {output.sam}
+        minimap2 -a -x map-ont {input.ref} {input.fastq} > {output.sam}
         samtools sort {output.sam} > {output.bam}
         samtools index {output.bam}
         """
@@ -78,4 +78,21 @@ rule build_pileup:
             --ref_record_name {wildcards.rec_id} \
             --qual_min {params.min_q} \
             --clip_minL {params.min_L} \
+        """
+
+
+rule extract_cons_gap_freqs:
+    input:
+        pileup=rules.build_pileup.output.pileup,
+        ref=rules.map_reads.input.ref,
+    output:
+        npz=out_fld + "/pileup/{ref_id}/{rec_id}/{sample_id}/cons_gap_freqs.npz",
+    conda:
+        "../conda_envs/pileup.yml"
+    shell:
+        """
+        python3 scripts/pileup/extract_freqs.py \
+            --ref_genome {input.ref} --pileup {input.pileup} \
+            --record {wildcards.rec_id} --npz {output.npz} \
+            --verbose
         """

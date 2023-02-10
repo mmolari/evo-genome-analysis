@@ -100,12 +100,15 @@ flowchart TD
     unmapped.fastq.gz")
   NonPrim("pileup/{ref_id}/non_primary/{sample_id}/
     non_primary.csv")
+  Freqs("/pileup/{ref_id}/{rec_id}/{sample_id}/cons_gap_freqs.npz")
 
 	Sample --> |map_reads| Map
 	Ref --> Map
   Map --> |build_pileup| Pileup
   Map --> |extract_unmapped| Unmap
   Map --> |extract_nonprimary| NonPrim
+  Pileup --> |extract_cons_gap_freqs| Freqs
+  Ref --> Freqs
 ```
 
 ### output file description by rule
@@ -122,3 +125,5 @@ flowchart TD
     - `flag`: sam file flag of the mapping.
     - `fwd`/`sec`/`suppl`: whether the mapping is forward / secondary / supplementary
     - `rs`/`re`/`qs`/`qe`: reference/query start and end positions. Differently from the sam file, this is always in the forward frame of reference, so that start and end points can be compared for different mappings.
+- `extract_cons_gap_freqs`: extract consensus and gap counts.
+  - `cons_gap_cts.npz`: 4xL matrices, with entries n. fwd/rev consensus reads and tot n. fwd/rev reads. For consensus only `ACTG` reads are counted in the total, while for gaps also `-` or `N` are considered in the total.

@@ -74,13 +74,9 @@ include: "rules/pileup.smk"
 
 rule all:
     input:
-        # [
-        #     expand(rules.map_reads.output, ref_id=ref, sample_id=reads)
-        #     for ref, reads in pileups.items()
-        # ],
         [
             expand(
-                rules.build_pileup.output,
+                rules.extract_cons_gap_freqs.output,
                 ref_id=ref,
                 rec_id=ref_records[ref],
                 sample_id=reads,
