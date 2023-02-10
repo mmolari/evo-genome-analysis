@@ -78,3 +78,35 @@ figure_3:
     - "reads_6.fastq.gz"
     - ...
 ```
+
+## pileup workflow
+
+For each reference file `{ref_id}` multiple records `{rec_id}` can be present. For each pair of reference and sample `{sample_id}` given in the configuration file the following operations are performed in the workflow:
+
+```mermaid
+flowchart TD
+	Sample["{sample_id}.fastq.gz"]
+	Ref("{ref_id}.fa")
+	Map("mapped_reads/{ref_id}/
+    {sample_id}.sam,
+    {sample_id}.bam,
+    {sample_id}.bam.bai")
+  Pileup("pileup/{ref_id}/{rec_id}/{sample_id}/
+    allele_counts.npz
+    insertions.pkl.gz
+    clips.pkl.gz")
+  Unmap("pileup/{ref_id}/non_primary/{sample_id}/
+    unmapped.csv,
+    unmapped.fastq.gz")
+
+	Sample --> |map_reads| Map
+	Ref --> Map
+  Map --> |build_pileup| Pileup
+  Map --> |extract_unmapped| Unmap
+```
+
+### output file description by rule
+
+- `extract_unmapped`: rule to extract unmapped reads. These will contain possible contaminations that do not map to any of the references.
+  - `unmapped.csv`: dataframe with one entry per unmapped read. Columns are query name, read length, average quality score and read flag in the sam file.
+  - `unmapped.fastq.gz`: fastq file containing unmapped reads.

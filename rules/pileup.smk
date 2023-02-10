@@ -27,7 +27,7 @@ rule map_reads:
 #     conda:
 #     shell:
 
-# rule extract_nonprimary_mappings:
+# rule extract_nonprimary:
 # csv with secondary/supplementary mappings info, with all the corresponding references.
 #     input:
 #     output:
