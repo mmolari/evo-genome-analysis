@@ -52,15 +52,15 @@ if not "run_config" in config:
         "the parameter run_config is not defined. Define it with --config run_config=myfile.yml"
     )
 
-
+# extract pileup config options
 run_config = parse_pileup_config(config["run_config"])
-
 
 in_fld = run_config["input"]
 out_fld = run_config["output"]
 pileups = run_config["pileups"]
 ref_records = run_config["ref_records"]
 
+# print run options
 print("----------- run configuration ------------")
 print("input folder:", in_fld)
 print("\noutput folder:", out_fld)
@@ -74,16 +74,20 @@ include: "rules/pileup.smk"
 
 rule all:
     input:
-        [
-            expand(rules.map_reads.output, ref_id=ref, read_id=reads)
-            for ref, reads in pileups.items()
-        ],
+        # [
+        #     expand(rules.map_reads.output, ref_id=ref, sample_id=reads)
+        #     for ref, reads in pileups.items()
+        # ],
         [
             expand(
                 rules.build_pileup.output,
                 ref_id=ref,
                 rec_id=ref_records[ref],
-                read_id=reads,
+                sample_id=reads,
             )
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(rules.extract_unmapped.output, ref_id=ref, sample_id=reads)
             for ref, reads in pileups.items()
         ],

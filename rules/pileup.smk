@@ -3,12 +3,12 @@ pileup_config = config["pileup"]
 
 rule map_reads:
     input:
-        fa=in_fld + "/reads/{read_id}.fastq.gz",
+        fa=in_fld + "/reads/{sample_id}.fastq.gz",
         ref=in_fld + "/references/{ref_id}.fa",
     output:
-        sam=out_fld + "/mapped_reads/{ref_id}/{read_id}.sam",
-        bam=out_fld + "/mapped_reads/{ref_id}/{read_id}.bam",
-        bai=out_fld + "/mapped_reads/{ref_id}/{read_id}.bam.bai",
+        sam=out_fld + "/mapped_reads/{ref_id}/{sample_id}.sam",
+        bam=out_fld + "/mapped_reads/{ref_id}/{sample_id}.bam",
+        bai=out_fld + "/mapped_reads/{ref_id}/{sample_id}.bam.bai",
     conda:
         "../conda_envs/pileup.yml"
     shell:
@@ -35,17 +35,32 @@ rule map_reads:
 #     shell:
 
 
+rule extract_unmapped:
+    input:
+        bam=rules.map_reads.output.bam,
+    output:
+        csv=out_fld + "/pileup/{ref_id}/non_primary/{sample_id}/unmapped.csv",
+        fastq=out_fld + "/pileup/{ref_id}/non_primary/{sample_id}/unmapped.fastq.gz",
+    conda:
+        "../conda_envs/pileup.yml"
+    shell:
+        """
+        python3 scripts/pileup/extract_unmapped.py \
+            --bam {input.bam} --csv {output.csv} --fastq {output.fastq}
+        """
+
+
 rule build_pileup:
     input:
         bam=rules.map_reads.output.bam,
     output:
-        pileup=out_fld + "/pileup/{ref_id}/{rec_id}/{read_id}/allele_counts.npz",
-        insertions=out_fld + "/pileup/{ref_id}/{rec_id}/{read_id}/insertions.pkl.gz",
-        clips=out_fld + "/pileup/{ref_id}/{rec_id}/{read_id}/clips.pkl.gz",
+        pileup=out_fld + "/pileup/{ref_id}/{rec_id}/{sample_id}/allele_counts.npz",
+        insertions=out_fld + "/pileup/{ref_id}/{rec_id}/{sample_id}/insertions.pkl.gz",
+        clips=out_fld + "/pileup/{ref_id}/{rec_id}/{sample_id}/clips.pkl.gz",
     params:
         min_q=pileup_config["qual_min"],
         min_L=pileup_config["clip_minL"],
-        out_dir=lambda w: out_fld + f"/pileup/{w.ref_id}/{w.rec_id}/{w.read_id}",
+        out_dir=lambda w: out_fld + f"/pileup/{w.ref_id}/{w.rec_id}/{w.sample_id}",
     conda:
         "../conda_envs/pileup.yml"
     shell:

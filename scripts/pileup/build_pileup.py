@@ -57,7 +57,7 @@ def sam_to_allele_counts(
         # allocate space
         L = samfile.lengths[nref]
         if VERBOSE:
-            print(("allocating for:", ref_record_name, "length:", L))
+            print("allocating for:", ref_record_name, "length:", L)
         ac = (
             ref_record_name,  # name of reference
             ac_array(L),  # pileup
@@ -172,7 +172,6 @@ def dump_allele_counts(dirname, ac, suffix=""):
             raise "creating directory failed"
 
     refname, ac_array, insertions, clips, clip_seqs = ac
-    print(refname)
     np.savez_compressed(dirname + "allele_counts" + suffix + ".npz", ac_array)
     with gzip.open(dirname + "insertions" + suffix + ".pkl.gz", "w") as outfile:
         pickle.dump({k: dict(v) for k, v in insertions.items()}, outfile)
