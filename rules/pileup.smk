@@ -27,12 +27,19 @@ rule map_reads:
 #     conda:
 #     shell:
 
-# rule extract_nonprimary:
-# csv with secondary/supplementary mappings info, with all the corresponding references.
-#     input:
-#     output:
-#     conda:
-#     shell:
+
+rule extract_nonprimary:
+    input:
+        bam=rules.map_reads.output.bam,
+    output:
+        csv=out_fld + "/pileup/{ref_id}/non_primary/{sample_id}/non_primary.csv",
+    conda:
+        "../conda_envs/pileup.yml"
+    shell:
+        """
+        python3 scripts/pileup/extract_nonprimary.py \
+            --bam {input.bam} --csv {output.csv}
+        """
 
 
 rule extract_unmapped:

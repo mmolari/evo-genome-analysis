@@ -98,11 +98,14 @@ flowchart TD
   Unmap("pileup/{ref_id}/non_primary/{sample_id}/
     unmapped.csv,
     unmapped.fastq.gz")
+  NonPrim("pileup/{ref_id}/non_primary/{sample_id}/
+    non_primary.csv")
 
 	Sample --> |map_reads| Map
 	Ref --> Map
   Map --> |build_pileup| Pileup
   Map --> |extract_unmapped| Unmap
+  Map --> |extract_nonprimary| NonPrim
 ```
 
 ### output file description by rule
@@ -110,3 +113,12 @@ flowchart TD
 - `extract_unmapped`: rule to extract unmapped reads. These will contain possible contaminations that do not map to any of the references.
   - `unmapped.csv`: dataframe with one entry per unmapped read. Columns are query name, read length, average quality score and read flag in the sam file.
   - `unmapped.fastq.gz`: fastq file containing unmapped reads.
+- `extract_nonprimary`: rule to create a csv file containing info
+  - `non_primary.csv`: contains one line per mapping, and the following columns:
+    - `qry`/`ref`: reqference and query name
+    - `qry_len`: query length. It is the length of the query sequence inferred from the cigar string, including hard clips (it's zero if the sequence is unmapped).
+    - `ref_len`: length of the aligned portion on the reference.
+    - `n_matches`: total n. of nucleotide matches in the cigar string.
+    - `flag`: sam file flag of the mapping.
+    - `fwd`/`sec`/`suppl`: whether the mapping is forward / secondary / supplementary
+    - `rs`/`re`/`qs`/`qe`: reference/query start and end positions. Differently from the sam file, this is always in the forward frame of reference, so that start and end points can be compared for different mappings.
