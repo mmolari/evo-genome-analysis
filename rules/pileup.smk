@@ -19,13 +19,18 @@ rule map_reads:
         """
 
 
-# rule demultiplex_mappings_stats:
-# txt/json file with n. / len of primary mappings stratified by reference
-# and
-#     input:
-#     output:
-#     conda:
-#     shell:
+rule map_summary:
+    input:
+        bam=rules.map_reads.output.bam,
+    output:
+        txt=out_fld + "/mapped_reads/{ref_id}/{sample_id}.info.txt",
+    conda:
+        "../conda_envs/pileup.yml"
+    shell:
+        """
+        python3 scripts/pileup/map_summary.py \
+            --bam {input.bam} > {output.txt}
+        """
 
 
 rule extract_nonprimary:

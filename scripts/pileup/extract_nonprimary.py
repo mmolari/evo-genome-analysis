@@ -22,7 +22,7 @@ def read_info_dict(read):
         "flag": read.flag,
         "fwd": fwd,
         "ref_len": read.reference_length,
-        "qry_len": read.infer_read_length(),
+        "qry_len": qL,
         "n_matches": read.get_cigar_stats()[0][0],
         "sec": read.is_secondary,
         "suppl": read.is_supplementary,

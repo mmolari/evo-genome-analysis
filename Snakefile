@@ -91,3 +91,7 @@ rule all:
             expand(rules.extract_nonprimary.output, ref_id=ref, sample_id=reads)
             for ref, reads in pileups.items()
         ],
+        [
+            expand(rules.map_summary.output, ref_id=ref, sample_id=reads)
+            for ref, reads in pileups.items()
+        ],

@@ -1,6 +1,5 @@
 import pysam
 import argparse
-import sys
 import gzip
 
 import numpy as np
