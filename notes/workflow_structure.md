@@ -91,6 +91,7 @@ flowchart TD
     {sample_id}.sam,
     {sample_id}.bam,
     {sample_id}.bam.bai")
+  Info("mapped_reads/{ref_id}/{sample_id}.info.txt")
   Pileup("pileup/{ref_id}/{rec_id}/{sample_id}/
     allele_counts.npz
     insertions.pkl.gz
@@ -104,6 +105,7 @@ flowchart TD
 
 	Sample --> |map_reads| Map
 	Ref --> Map
+  Map --> |map_summary| Info
   Map --> |build_pileup| Pileup
   Map --> |extract_unmapped| Unmap
   Map --> |extract_nonprimary| NonPrim
@@ -112,7 +114,7 @@ flowchart TD
 ```
 
 ### output file description by rule
-
+- `map_summary`: creates a text file with information on the number and distribution of mapped reads on the various references, for primary, secondary and supplementary alignments.
 - `extract_unmapped`: rule to extract unmapped reads. These will contain possible contaminations that do not map to any of the references.
   - `unmapped.csv`: dataframe with one entry per unmapped read. Columns are query name, read length, average quality score and read flag in the sam file.
   - `unmapped.fastq.gz`: fastq file containing unmapped reads.
