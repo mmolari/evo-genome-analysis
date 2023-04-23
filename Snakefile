@@ -55,8 +55,8 @@ if not "run_config" in config:
 # extract pileup config options
 run_config = parse_pileup_config(config["run_config"])
 
-in_fld = run_config["input"]
-out_fld = run_config["output"]
+in_fld = run_config["input"].removesuffix("/")
+out_fld = run_config["output"].removesuffix("/")
 pileups = run_config["pileups"]
 ref_records = run_config["ref_records"]
 

@@ -16,7 +16,7 @@ input_fld/
 
 The name of the reads and reference files is arbitrary, but the extensions must be `.fastq.gz` and `.fa` respectively.
 
-The name of records in reference files must be short (less than 20 characters).
+The name of records in reference files must be short (less than 20 characters) and *not contain any spaces* since it will be used to generate names of the subfiles.
 
 ## pileup configuration file
 

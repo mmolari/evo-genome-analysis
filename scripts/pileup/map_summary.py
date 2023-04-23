@@ -7,6 +7,9 @@ from collections import defaultdict
 
 
 def read_info_dict(read):
+    cs = read.get_cigar_stats()[0]
+    n_matches = cs[0] if len(cs) > 0 else 0
+
     res = {
         "qry": read.query_name,
         "ref": read.reference_name,
@@ -14,6 +17,7 @@ def read_info_dict(read):
         "ref_len": read.reference_length,
         "qL_cigar": read.infer_read_length(),
         "qL_seq": read.query_length,
+        "n_matches": n_matches,
         "sec": read.is_secondary,
         "suppl": read.is_supplementary,
     }
@@ -51,43 +55,43 @@ if __name__ == "__main__":
             df.append(read_info_dict(read))
         df = pd.DataFrame(df)
 
-        mask_unmapped = df.flag & 4 > 0
-        df.loc[mask_unmapped, "ref"] = "unmapped"
-        mask_primary = (~df.suppl) & (~df.sec) & (~mask_unmapped)
+    mask_unmapped = df.flag & 4 > 0
+    df.loc[mask_unmapped, "ref"] = "unmapped"
+    mask_primary = (~df.suppl) & (~df.sec) & (~mask_unmapped)
 
-        print("\n----- primary mappings -----")
-        sdf = df[mask_primary | mask_unmapped]
-        summary = {
-            "n. reads": sdf["ref"].value_counts(),
-            "avg. read len (bp)": sdf.groupby("ref")["qL_seq"].mean(),
-            "tot mapped len (bp)": sdf.groupby("ref")["qL_seq"].sum(),
-        }
-        summary["avg. coverage"] = summary["tot mapped len (bp)"] / pd.Series(ref_L)
-        print(pd.DataFrame(summary))
+    print("\n----- primary mappings -----")
+    sdf = df[mask_primary | mask_unmapped]
+    summary = {
+        "n. reads": sdf["ref"].value_counts(),
+        "avg. read len (bp)": sdf.groupby("ref")["qL_seq"].mean(),
+        "tot mapped len (bp)": sdf.groupby("ref")["n_matches"].sum(),
+    }
+    summary["avg. coverage"] = summary["tot mapped len (bp)"] / pd.Series(ref_L)
+    print(pd.DataFrame(summary))
 
-        # primary reference for each query
-        qid_to_primary_ref = {
-            row.qry: row.ref for idx, row in df[mask_primary][["qry", "ref"]].iterrows()
-        }
+    # primary reference for each query
+    qid_to_primary_ref = {
+        row.qry: row.ref for idx, row in df[mask_primary][["qry", "ref"]].iterrows()
+    }
 
-        # select supplementary mappings
-        for tp in ["supplementary", "secondary"]:
-            print(f"\n----- {tp} mappings -----")
+    # select supplementary mappings
+    for tp in ["supplementary", "secondary"]:
+        print(f"\n----- {tp} mappings -----")
 
-            mask = df.suppl if tp == "supplementary" else df.sec
-            N = mask.sum()
-            print(f"n. {tp} mappings: {N}")
+        mask = df.suppl if tp == "supplementary" else df.sec
+        N = mask.sum()
+        print(f"n. {tp} mappings: {N}")
 
-            if N == 0:
-                continue
+        if N == 0:
+            continue
 
-            sdf = df[mask].copy()
-            sdf["primary ref"] = sdf["qry"].apply(lambda x: qid_to_primary_ref[x])
-            srf = f"{tp} ref"
-            sdf = sdf.rename(columns={"ref": srf})
+        sdf = df[mask].copy()
+        sdf["primary ref"] = sdf["qry"].apply(lambda x: qid_to_primary_ref[x])
+        srf = f"{tp} ref"
+        sdf = sdf.rename(columns={"ref": srf})
 
-            print("\n--> n. reads")
-            print(sdf[["primary ref", srf]].value_counts().unstack())
+        print("\n--> n. reads")
+        print(sdf[["primary ref", srf]].value_counts().unstack())
 
-            print(f"\n--> {tp} read total length")
-            print(sdf.groupby(["primary ref", srf])["qL_seq"].sum().unstack())
+        print(f"\n--> {tp} read total matched length")
+        print(sdf.groupby(["primary ref", srf])["n_matches"].sum().unstack())
