@@ -191,7 +191,7 @@ if __name__ == "__main__":
     parser.add_argument("--bam_file", help="bam file to pile up")
     parser.add_argument("--out_dir", help="directory to save results")
     parser.add_argument("--qual_min", help="minimum acceptable read quality", type=int)
-    parser.add_argument("--clip_minL", help="minimum acceptable read quality", type=int)
+    parser.add_argument("--clip_minL", help="minimum clip length", type=int)
     parser.add_argument("--ref_record_name", help="reference record name")
 
     args = parser.parse_args()

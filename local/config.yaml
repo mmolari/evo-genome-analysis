@@ -1,3 +1,5 @@
 use-conda: True
 rerun-incomplete: True
 conda-frontend: "mamba"
+cores: 1
+printshellcmds: "True"
