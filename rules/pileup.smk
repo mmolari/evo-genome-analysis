@@ -101,3 +101,28 @@ rule extract_cons_gap_freqs:
             --record {wildcards.rec_id} --npz {output.npz} \
             --verbose
         """
+
+
+rule pileup_all:
+    input:
+        [
+            expand(
+                rules.extract_cons_gap_freqs.output,
+                ref_id=ref,
+                rec_id=ref_records[ref],
+                sample_id=reads,
+            )
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(rules.extract_unmapped.output, ref_id=ref, sample_id=reads)
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(rules.extract_nonprimary.output, ref_id=ref, sample_id=reads)
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(rules.map_summary.output, ref_id=ref, sample_id=reads)
+            for ref, reads in pileups.items()
+        ],

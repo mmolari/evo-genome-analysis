@@ -1,3 +1,5 @@
 pileup:
   qual_min: 15
   clip_minL: 100
+plots:
+  coverage-maxbins: 2500

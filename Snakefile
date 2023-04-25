@@ -70,28 +70,10 @@ print("------------------------------------------")
 
 
 include: "rules/pileup.smk"
+include: "rules/plots.smk"
 
 
 rule all:
     input:
-        [
-            expand(
-                rules.extract_cons_gap_freqs.output,
-                ref_id=ref,
-                rec_id=ref_records[ref],
-                sample_id=reads,
-            )
-            for ref, reads in pileups.items()
-        ],
-        [
-            expand(rules.extract_unmapped.output, ref_id=ref, sample_id=reads)
-            for ref, reads in pileups.items()
-        ],
-        [
-            expand(rules.extract_nonprimary.output, ref_id=ref, sample_id=reads)
-            for ref, reads in pileups.items()
-        ],
-        [
-            expand(rules.map_summary.output, ref_id=ref, sample_id=reads)
-            for ref, reads in pileups.items()
-        ],
+        rules.pileup_all.input,
+        rules.plot_all.input,
