@@ -86,20 +86,31 @@ rule build_pileup:
         """
 
 
-rule extract_cons_gap_freqs:
+rule extract_counts:
     input:
-        pileup=rules.build_pileup.output.pileup,
+        pileups=lambda w: expand(
+            rules.build_pileup.output.pileup,
+            sample_id=pileups[w.ref_id],
+            allow_missing=True,
+        ),
         ref=rules.map_reads.input.ref,
     output:
-        npz=out_fld + "/pileup/{ref_id}/{rec_id}/{sample_id}/cons_gap_freqs.npz",
+        cov=out_fld + "/pileup/{ref_id}/{rec_id}/coverage.npz",
+        cons=out_fld + "/pileup/{ref_id}/{rec_id}/consensus.npz",
+        gap=out_fld + "/pileup/{ref_id}/{rec_id}/gaps.npz",
+    params:
+        rec_id=lambda w: w.rec_id,
     conda:
         "../conda_envs/pileup.yml"
     shell:
         """
-        python3 scripts/pileup/extract_freqs.py \
-            --ref_genome {input.ref} --pileup {input.pileup} \
-            --record {wildcards.rec_id} --npz {output.npz} \
-            --verbose
+        python3 scripts/pileup/extract_counts.py \
+            --pileups {input.pileups} \
+            --ref_seq {input.ref} \
+            --ref_record {params.rec_id} \
+            --cov_ct {output.cov} \
+            --cons_ct {output.cons} \
+            --gap_ct {output.gap} \
         """
 
 
@@ -107,10 +118,9 @@ rule pileup_all:
     input:
         [
             expand(
-                rules.extract_cons_gap_freqs.output,
+                rules.extract_counts.output,
                 ref_id=ref,
                 rec_id=ref_records[ref],
-                sample_id=reads,
             )
             for ref, reads in pileups.items()
         ],
