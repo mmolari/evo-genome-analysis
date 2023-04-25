@@ -1,4 +1,4 @@
-name: evo-genome-plots
+name: plots
 channels:
   - conda-forge
   - bioconda
@@ -170,4 +170,3 @@ dependencies:
   - xz=5.2.6
   - zlib=1.2.13
   - zstd=1.5.2
-prefix: /home/marco/miniconda3/envs/evo-genome-plots

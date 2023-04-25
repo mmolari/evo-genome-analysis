@@ -55,4 +55,3 @@ dependencies:
   - wheel=0.38.4
   - xz=5.2.6
   - zlib=1.2.13
-prefix: /home/marco/miniconda3/envs/pileup

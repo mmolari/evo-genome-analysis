@@ -54,31 +54,6 @@ ref_2:
   - ...
 ```
 
-**Plots**: the config file contains set of figures, each one with its own reference and samples set.
-```yaml
-input: "input_fld"
-output: "output_fld"
-figure_1:
-  reference: "ref_1.fa"
-  samples:
-    - "reads_1.fastq.gz"
-    - "reads_2.fastq.gz"
-    - "reads_3.fastq.gz"
-    - ...
-figure_2:
-  reference: "ref_1.fa"
-  samples:
-    - "reads_1.fastq.gz"
-    - "reads_5.fastq.gz"
-    - ...
-figure_3:
-  reference: "ref_2.fa"
-  samples:
-    - "reads_1.fastq.gz"
-    - "reads_6.fastq.gz"
-    - ...
-```
-
 ## pileup workflow
 
 For each reference file `{ref_id}` multiple records `{rec_id}` can be present. For each pair of reference and sample `{sample_id}` given in the configuration file the following operations are performed in the workflow:
@@ -101,7 +76,7 @@ flowchart TD
     unmapped.fastq.gz")
   NonPrim("pileup/{ref_id}/non_primary/{sample_id}/
     non_primary.csv")
-  Freqs("/pileup/{ref_id}/{rec_id}/{sample_id}/cons_gap_freqs.npz")
+  Cts("/pileup/{ref_id}/{rec_id}/{coverage,gaps,consensus}.npz")
 
 	Sample --> |map_reads| Map
 	Ref --> Map
@@ -109,8 +84,8 @@ flowchart TD
   Map --> |build_pileup| Pileup
   Map --> |extract_unmapped| Unmap
   Map --> |extract_nonprimary| NonPrim
-  Pileup --> |extract_cons_gap_freqs| Freqs
-  Ref --> Freqs
+  Pileup --> |extract_counts| Cts
+  Ref --> Cts
 ```
 
 ### output file description by rule
@@ -127,5 +102,17 @@ flowchart TD
     - `flag`: sam file flag of the mapping.
     - `fwd`/`sec`/`suppl`: whether the mapping is forward / secondary / supplementary
     - `rs`/`re`/`qs`/`qe`: reference/query start and end positions. Differently from the sam file, this is always in the forward frame of reference, so that start and end points can be compared for different mappings.
-- `extract_cons_gap_freqs`: extract consensus and gap counts.
-  - `cons_gap_cts.npz`: 4xL matrices, with entries n. fwd/rev consensus reads and tot n. fwd/rev reads. For consensus only `ACTG` reads are counted in the total, while for gaps also `-` or `N` are considered in the total.
+- `extract_counts`: extract counts of coverage, consensus and gaps. These are (2,L) matrices, where L is the length of the reference sequence and the first index corresponds to fwd/rev reads. They contain integer values indicating counts.
+
+
+# conda environments
+
+The `pileup.yml` environment was created with the command:
+```bash
+mamba create -n pileup -c bioconda -c conda-forge minimap2 samtools pysam biopython pandas
+```
+
+The `plots.yml` environment instead:
+```bash
+ mamba create -n plots -c conda-forge  numpy scipy matplotlib seaborn pandas plotly
+```
