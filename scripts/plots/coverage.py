@@ -70,7 +70,7 @@ def plot_png(cov_dict, step, fig_name):
     ax.set_xlim(0, cov_max)
     ax.set_xlabel("coverage")
     ax.set_ylabel("c.d.f.")
-    ax.title("coverage cumulative distribution")
+    ax.set_title("coverage cumulative distribution")
 
     # plot coverage over genome
     ax = axs[1]
@@ -83,7 +83,7 @@ def plot_png(cov_dict, step, fig_name):
 
     ax.set_xlabel("reference position (bp)")
     ax.set_ylabel("coverage / avg. coverage")
-    ax.title("coverage / avg. coverage distribution")
+    ax.set_title("coverage / avg. coverage distribution")
     ax.legend()
     plt.tight_layout()
     plt.savefig(fig_name)
