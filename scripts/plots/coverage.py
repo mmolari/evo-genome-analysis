@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--samples", type=str, nargs="+")
+    parser.add_argument("--coverage", type=str)
     parser.add_argument("--maxbins", type=int)
     parser.add_argument("--out_png", type=str)
     parser.add_argument("--out_html", type=str)
@@ -24,18 +24,15 @@ def step_size(L, maxbin):
     return step
 
 
-def sample_name(fname):
-    return fname.split("/")[-2]
-
-
-def load_coverage(fname):
+def load_coverage_dict(fname):
+    "Load the coverage from all samples in a dictionary"
+    cov_dict = {}
     with np.load(fname) as f:
-        # shape: (2, 6, L)
-        pu = f["pileup"]
+        for sample, cov in f.items():
+            # (2, L) -> L
+            cov_dict[sample] = cov.sum(axis=0)
 
-    # nucl order: ["A", "C", "G", "T", "-", "N"]
-    cov = np.sum(pu, axis=0)[:4].sum(axis=0)
-    return cov
+    return cov_dict
 
 
 def average_coverage(cov, step):
@@ -148,7 +145,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     # load coverage
-    cov_dict = {sample_name(fname): load_coverage(fname) for fname in args.samples}
+    cov_dict = load_coverage_dict(fname=args.coverage)
     ref_L = cov_dict[list(cov_dict.keys())[0]].size
     step = step_size(ref_L, args.maxbins)
     print(f"{ref_L=}, {args.maxbins=}, {step=}")

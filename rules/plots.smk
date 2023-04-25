@@ -1,10 +1,6 @@
 rule coverage:
     input:
-        pileups=lambda w: expand(
-            rules.build_pileup.output.pileup,
-            sample_id=pileups[w.ref_id],
-            allow_missing=True,
-        ),
+        cov=rules.extract_counts.output.cov,
     output:
         png=out_fld + "/figs/{ref_id}/{rec_id}/coverage.png",
         html=out_fld + "/figs/{ref_id}/{rec_id}/coverage.html",
@@ -15,7 +11,7 @@ rule coverage:
     shell:
         """
         python3 scripts/plots/coverage.py \
-            --samples {input.pileups} \
+            --coverage {input.cov} \
             --maxbins {params.maxbins} \
             --out_png {output.png} \
             --out_html {output.html}
