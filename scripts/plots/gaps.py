@@ -19,6 +19,7 @@ def parse_args():
 
 
 def load_npz_dict(fname):
+    """Load a npz file and return a dictionary of arrays"""
     npz_dict = {}
     with np.load(fname) as f:
         for sample, data in f.items():
@@ -27,7 +28,7 @@ def load_npz_dict(fname):
 
 
 def safe_division(a, b, extra):
-    "return the division between the two vectors. Return extra where b is zero"
+    "return the division between the two vectors. Return `extra` where b is zero"
     mask = b == 0
     result = np.divide(a, b, out=np.zeros_like(a, dtype=float), where=~mask)
     result[mask] = extra
@@ -64,10 +65,11 @@ def load_tensors(gap_file, cov_file):
 
 def relevant_deltaF(F, C, freq_thr, cov_thr):
     """
-    Evaluate a per-position delta-frequency (Fmax - Fmin).
+    Evaluate a per-position delta-frequency (Fmax - Fmin) vector.
     Only sites that have above thresholds fwd and rev coverage are considered
     for Fmax and Fmin.
-    Moreover, only sites with above threshold Fmax are returned.
+    Moreover, only sites with above frequency-threshold Fmax are considered.
+    All the other sites are assigned a deltaF of -inf.
     """
 
     # mask relevant coverages (sites that have fwd & rev coverage above threshold)
@@ -97,12 +99,13 @@ def relevant_deltaF(F, C, freq_thr, cov_thr):
     # shape (L)
     mask = F_max > freq_thr
 
-    # exclude masked positions
+    # set masked positions to -inf
     dF[~mask] = -np.inf
+
     return dF
 
 
-def cluster_pos(pos):
+def cluster_pos_dict(pos):
     """assigns cluster ids to positions. Sets of adjacent positions
     are assigned to the same cluster. Returns a dictionary mapping."""
     p = np.sort(pos)
@@ -117,6 +120,13 @@ def cluster_pos(pos):
 
 
 def deltaF_to_dataframe(deltaF, F, samples):
+    """Given the deltaF vector, return a dataframe with only positions that have deltaF > 0.
+    The dataframe contains the following columns:
+    - deltaF
+    - pos
+    - F_{sample} for each sample
+    - gap_cluster: cluster id for each position
+    """
 
     # create dataframe and assign genomic positions
     df = pd.DataFrame(deltaF, columns=["deltaF"])
@@ -135,7 +145,7 @@ def deltaF_to_dataframe(deltaF, F, samples):
     if len(df) == 0:
         return df
 
-    cluster_dict = cluster_pos(df["pos"])
+    cluster_dict = cluster_pos_dict(df["pos"])
 
     df["gap_cluster"] = df["pos"].map(cluster_dict)
 
@@ -143,6 +153,7 @@ def deltaF_to_dataframe(deltaF, F, samples):
 
 
 def plot_gap_overview(F, samples, freq_thr, ax1, ax2):
+    """Plot gap frequency histogram and high frequency positions"""
 
     S = len(samples)
     cmap = mpl.colormaps.get("tab10")
@@ -175,6 +186,7 @@ def plot_gap_overview(F, samples, freq_thr, ax1, ax2):
 
 
 def plot_dF(dF, ax1, ax2):
+    """Plot deltaF histogram and positions"""
 
     mask = dF >= 0
 
@@ -201,6 +213,7 @@ def plot_dF(dF, ax1, ax2):
 
 
 def plot_summary(F, samples, freq_thr, dF, savename):
+    """Plot summary of gap frequencies and deltaF"""
     fig, axs = plt.subplots(
         2, 2, figsize=(15, 6), gridspec_kw={"width_ratios": [1, 4]}, sharex="col"
     )
@@ -212,7 +225,7 @@ def plot_summary(F, samples, freq_thr, dF, savename):
 
 
 def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
-    "Plot selected frequency trajectories"
+    """Plot selected frequency trajectories"""
 
     I = len(idxs)
     # number of columns and rows
@@ -278,6 +291,7 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
 
 
 def plotly_gaps(F, samples, freq_thr, savename):
+    """Plot interactive gap distribution with plotly"""
     Ft = F[:, 0, :]
     S = len(samples)
     cmap = mpl.colormaps.get("tab10")
@@ -319,14 +333,18 @@ if __name__ == "__main__":
     # the second index of the tensor is: 0: tot, 1: fwd, 2: rev
     F, C, samples = load_tensors(args.gap_npz, args.cov_npz)
 
+    # compute deltaF for each position
     deltaF = relevant_deltaF(F, C, freq_thr=freq_thr, cov_thr=cov_thr)
+
     plot_summary(F, samples, freq_thr, deltaF, savename=out_summary)
 
-    # create a dataframe with only relevant positions
+    # create a dataframe with only relevant positions (deltaF >= 0)
     df = deltaF_to_dataframe(deltaF, F, samples)
 
+    # do not plot if no relevant positions are found
     if len(df) > 0:
-        # order clusters by max frequency
+
+        # order clusters by max frequency, and select groups of trajectories
         cl_freq = df.groupby("gap_cluster")["deltaF"].max().sort_values(ascending=False)
         cl_idxs = cl_freq.index.values[:n_top_trajs]
         idxs_groups = [df["pos"][df["gap_cluster"] == i].values - 1 for i in cl_idxs]
@@ -334,8 +352,7 @@ if __name__ == "__main__":
         plot_traj(
             F, C, deltaF, samples, idxs_groups, freq_thr, cov_thr, savename=out_trajs
         )
-
         plotly_gaps(F, samples, freq_thr, savename=out_html)
 
-        # export
+        # export dataframe
         df.to_csv(out_csv, index=False)
