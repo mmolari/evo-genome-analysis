@@ -7,3 +7,7 @@ plots:
     n-top-trajs: 33
     freq-threshold: 0.75
     coverage-threshold: 5
+  consensus:
+    n-top-trajs: 33
+    freq-threshold: 0.75
+    coverage-threshold: 5

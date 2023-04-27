@@ -43,6 +43,30 @@ rule plot_gaps:
         """
 
 
+rule plot_consensus:
+    input:
+        cons=rules.extract_counts.output.cons,
+        cov=rules.extract_counts.output.cov,
+    output:
+        fld=directory(out_fld + "/figs/{ref_id}/{rec_id}/consensus"),
+    params:
+        freq_thr=plot_config["consensus"]["freq-threshold"],
+        cov_thr=plot_config["consensus"]["coverage-threshold"],
+        n_top_trajs=plot_config["consensus"]["n-top-trajs"],
+    conda:
+        "../conda_envs/plots.yml"
+    shell:
+        """
+        python3 scripts/plots/consensus.py \
+            --freq_thr {params.freq_thr} \
+            --cov_thr {params.cov_thr} \
+            --n_top_trajs {params.n_top_trajs} \
+            --cons_npz {input.cons} \
+            --cov_npz {input.cov} \
+            --plot_fld {output.fld} \
+        """
+
+
 rule plot_all:
     input:
         [
@@ -56,6 +80,14 @@ rule plot_all:
         [
             expand(
                 rules.plot_gaps.output,
+                ref_id=ref,
+                rec_id=ref_records[ref],
+            )
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(
+                rules.plot_consensus.output,
                 ref_id=ref,
                 rec_id=ref_records[ref],
             )
