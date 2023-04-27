@@ -3,3 +3,7 @@ pileup:
   clip_minL: 100
 plots:
   coverage-maxbins: 2500
+  gaps:
+    n-top-trajs: 33
+    freq-threshold: 0.75
+    coverage-threshold: 5
