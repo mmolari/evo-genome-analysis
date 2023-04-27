@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 import numpy as np
 from itertools import cycle
 import matplotlib as mpl
@@ -11,8 +12,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--coverage", type=str)
     parser.add_argument("--maxbins", type=int)
-    parser.add_argument("--out_png", type=str)
-    parser.add_argument("--out_html", type=str)
+    parser.add_argument("--out_fld", type=str)
     return parser.parse_args()
 
 
@@ -80,7 +80,7 @@ def plot_png(cov_dict, step, fig_name):
 
     ax.set_xlabel("reference position (bp)")
     ax.set_ylabel("coverage / avg. coverage")
-    ax.set_title("coverage / avg. coverage distribution")
+    ax.set_title(f"coverage / avg. coverage distribution - ({step} bp window)")
     ax.legend()
     plt.tight_layout()
     plt.savefig(fig_name)
@@ -144,6 +144,9 @@ if __name__ == "__main__":
 
     args = parse_args()
 
+    out_fld = pathlib.Path(args.out_fld)
+    out_fld.mkdir()
+
     # load coverage
     cov_dict = load_coverage_dict(fname=args.coverage)
     ref_L = cov_dict[list(cov_dict.keys())[0]].size
@@ -151,5 +154,5 @@ if __name__ == "__main__":
     print(f"{ref_L=}, {args.maxbins=}, {step=}")
 
     # plot
-    plot_png(cov_dict, step, args.out_png)
-    plot_html(cov_dict, step, args.out_html)
+    plot_png(cov_dict, step, out_fld / "coverage.png")
+    plot_html(cov_dict, step, out_fld / "coverage.html")

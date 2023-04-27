@@ -273,7 +273,9 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
             ax.set_title(f"pos {i+1}  |  dF={dF[i]:.2f}")
         else:
             avg_dF = np.mean(dF[idx])
-            ax.set_title(f"pos [{idx[0]+1}-{idx[-1]+1}]  |  <dF> = {avg_dF:.2f}")
+            ax.set_title(
+                f"pos [{np.min(idx)+1}-{np.max(idx)+1}]  |  <dF> = {avg_dF:.2f}"
+            )
 
         ax.grid(alpha=0.2)
         ax.axhline(freq_thr, color="lightgray", linestyle="--")

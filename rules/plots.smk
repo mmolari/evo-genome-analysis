@@ -5,8 +5,7 @@ rule plot_coverage:
     input:
         cov=rules.extract_counts.output.cov,
     output:
-        png=out_fld + "/figs/{ref_id}/{rec_id}/coverage.png",
-        html=out_fld + "/figs/{ref_id}/{rec_id}/coverage.html",
+        fld=directory(out_fld + "/figs/{ref_id}/{rec_id}/coverage"),
     params:
         maxbins=plot_config["coverage-maxbins"],
     conda:
@@ -16,8 +15,7 @@ rule plot_coverage:
         python3 scripts/plots/coverage.py \
             --coverage {input.cov} \
             --maxbins {params.maxbins} \
-            --out_png {output.png} \
-            --out_html {output.html}
+            --out_fld {output.fld} \
         """
 
 
