@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
+import plotly.figure_factory as ff
 
 
 def load_npz_dict(fname):
@@ -89,6 +90,43 @@ def relevant_deltaF(F, C, freq_thr, cov_thr):
     return dF
 
 
+def cluster_pos(pos):
+    """assigns cluster ids to positions. Sets of adjacent positions
+    are assigned to the same cluster. Returns a dictionary mapping."""
+    p = np.sort(pos)
+    dp = np.diff(p)
+    clusters = np.zeros_like(p)
+    clusters[0] = 1
+    clusters[1:] = dp > 1
+    clusters = np.cumsum(clusters)
+
+    pos_to_cluster = dict(zip(p, clusters))
+    return pos_to_cluster
+
+
+def deltaF_to_dataframe(deltaF, F, samples):
+
+    # create dataframe and assign genomic positions
+    df = pd.DataFrame(deltaF, columns=["deltaF"])
+    df["pos"] = df.index + 1
+
+    # only consider positive frequencies
+    df = df[df["deltaF"] >= 0]
+
+    # sort by deltaF
+    df.sort_values("deltaF", ascending=False, inplace=True)
+
+    # assign frequencies for each sample
+    for ns, s in enumerate(samples):
+        df[f"F_{s}"] = F[ns, 0, df.index]
+
+    cluster_dict = cluster_pos(df["pos"])
+
+    df["gap_cluster"] = df["pos"].map(cluster_dict)
+
+    return df
+
+
 def plot_gap_overview(F, samples, freq_thr, ax1, ax2):
 
     S = len(samples)
@@ -171,36 +209,44 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
         nR, nC, figsize=(4 * nC, 2 * nR), sharex=True, sharey=True, squeeze=False
     )
 
-    for ni, i in enumerate(idxs):
+    for ni, idx in enumerate(idxs):
         ax = axs[ni // nC, ni % nC]
 
-        A = 0.3 + 0.7 * (C[:, :, i] >= cov_thr)
-        x = np.arange(len(samples))
-        ax.plot(
-            F[:, 0, i],
-            label="tot",
-            color="k",
-            marker="o",
-            linestyle=":",
-            zorder=1,
-        )
-        ax.scatter(
-            x,
-            F[:, 1, i],
-            label="fwd",
-            alpha=A[:, 1],
-            color="C0",
-            marker=">",
-        )
-        ax.scatter(
-            x,
-            F[:, 2, i],
-            label="rev",
-            alpha=A[:, 2],
-            color="C1",
-            marker="<",
-        )
-        ax.set_title(f"pos {i+1}  |  dF={dF[i]:.2f}")
+        for i in idx:
+
+            A = 0.3 + 0.7 * (C[:, :, i] >= cov_thr)
+            x = np.arange(len(samples))
+            ax.plot(
+                F[:, 0, i],
+                label="tot",
+                color="k",
+                marker="o",
+                linestyle=":",
+                zorder=1,
+            )
+            ax.scatter(
+                x,
+                F[:, 1, i],
+                label="fwd",
+                alpha=A[:, 1],
+                color="C0",
+                marker=">",
+            )
+            ax.scatter(
+                x,
+                F[:, 2, i],
+                label="rev",
+                alpha=A[:, 2],
+                color="C1",
+                marker="<",
+            )
+        if len(idx) == 1:
+            i = idx[0]
+            ax.set_title(f"pos {i+1}  |  dF={dF[i]:.2f}")
+        else:
+            avg_dF = np.mean(dF[idx])
+            ax.set_title(f"pos [{idx[0]+1}-{idx[-1]+1}]  |  <dF> = {avg_dF:.2f}")
+
         ax.grid(alpha=0.2)
         ax.axhline(freq_thr, color="lightgray", linestyle="--")
 
@@ -215,6 +261,27 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
     plt.savefig(savename)
     plt.show()
 
+def plotly_gaps(F, samples, freq_thr, savename):
+    Ft = F[:, 0, :]
+    S = len(samples)
+    cmap = mpl.colormaps.get("tab10")
+    colors = [mpl.colors.to_hex(cmap(s)) for s in range(S)]
+    hist_data = []
+    for s in range(S):
+        mask = Ft[s, :] > freq_thr
+        pos = np.argwhere(mask).flatten() + 1
+        hist_data.append(pos)
+    fig = ff.create_distplot(
+        hist_data, samples, bin_size=1000, show_curve=False, colors=colors
+    )
+    fig.update_layout(
+        title=f"Gap distribution for {rec_id} - frequency threshold = {freq_thr}",
+        xaxis_title="position (bp)",
+        yaxis_title="prob. density",
+        legend_title="samples",
+    )
+    fig.write_html(savename)
+
 
 # %%
 
@@ -222,6 +289,7 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
 
 cov_thr = 5
 freq_thr = 0.75
+n_top = 33
 
 # rec_id = "R1_4963_kbp"
 # rec_id = "R2_127_kbp"
@@ -240,31 +308,25 @@ F, C, samples = load_tensors(gap_file, cov_file)
 
 deltaF = relevant_deltaF(F, C, freq_thr=freq_thr, cov_thr=cov_thr)
 
-# %%
+# create a dataframe with only relevant positions
+df = deltaF_to_dataframe(deltaF, F, samples)
 
-# to dataframe
-df = pd.Series(deltaF, name="deltaF").to_frame()
-df["pos"] = np.arange(len(deltaF)) + 1
-df = df[df["deltaF"] >= 0]
-df.sort_values("deltaF", ascending=False, inplace=True)
-idxs = df["pos"].values - 1
-for ns, s in enumerate(samples):
-    df[f"F_{s}"] = F[ns, 0, idxs]
 
-# %%
-n_top = 33
-idxs = np.array(df.iloc[:n_top]["pos"].values - 1)
+# order clusters by max frequency
+cl_freq = df.groupby("gap_cluster")["deltaF"].max().sort_values(ascending=False)
+cl_idxs = cl_freq.index.values[:n_top]
+idxs_groups = [df["pos"][df["gap_cluster"] == i].values - 1 for i in cl_idxs]
 
-# %%
 
 svfig = f"test_fig/gap_summary_{rec_id}.png"
 plot_summary(F, samples, freq_thr, deltaF, savename=svfig)
 
 svfig = f"test_fig/gap_traj_{rec_id}.png"
-plot_traj(F, C, deltaF, samples, idxs, freq_thr, cov_thr, savename=svfig)
-# %%
+plot_traj(F, C, deltaF, samples, idxs_groups, freq_thr, cov_thr, savename=svfig)
+
+plotly_gaps(F, samples, freq_thr, "test_fig/gaps_pos.html")
+
 # export
 df.to_csv(f"test_fig/gap_summary_{rec_id}.csv", index=False)
-# %%
+
 df
-# %%
