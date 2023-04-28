@@ -4,7 +4,7 @@ This pipeline can be used for the genomic analysis of evolution experiments, in 
 
 Example run command for local execution:
 ```bash
-snakemake -c1 --profile local --config run_config=test_data/run_config.yml
+snakemake --profile local --config run_config=test_data/run_config.yml
 ```
 
 Example run command for cluster execution:
