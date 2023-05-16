@@ -295,20 +295,18 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
 def plotly_gaps(F, samples, freq_thr, savename):
     """Plot interactive gap distribution with plotly"""
     Ft = F[:, 0, :]
-    S = len(samples)
     cmap = mpl.colormaps.get("tab10")
-    hist_data, colors, plot_samples = [], [], []
-    for s in range(S):
+    hist_data, keep_samples, colors = [], [], []
+    for s, sample in enumerate(samples):
         mask = Ft[s, :] > freq_thr
-        pos = np.argwhere(mask).flatten() + 1
-        # if sample has at least one gap
-        if len(pos) > 0:
+        if mask.sum() > 0:
+            pos = np.argwhere(mask).flatten() + 1
             hist_data.append(pos)
             colors.append(mpl.colors.to_hex(cmap(s)))
-            plot_samples.append(samples[s])
+            keep_samples.append(sample)
 
     fig = ff.create_distplot(
-        hist_data, plot_samples, bin_size=1000, show_curve=False, colors=colors
+        hist_data, keep_samples, bin_size=1000, show_curve=False, colors=colors
     )
     fig.update_layout(
         title=f"Gap distribution - frequency threshold = {freq_thr}",
@@ -316,6 +314,7 @@ def plotly_gaps(F, samples, freq_thr, savename):
         yaxis_title="prob. density",
         legend_title="samples",
     )
+    fig.write_html(savename)
 
 
 if __name__ == "__main__":

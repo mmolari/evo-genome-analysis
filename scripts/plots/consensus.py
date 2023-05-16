@@ -269,22 +269,15 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
 def plotly_noncons(F, samples, freq_thr, savename):
     """Plot interactive non-consensus distribution with plotly"""
     Ft = F[:, 0, :]
-
-    keep_samples = []
-    sample_nums = []
-    for ns, s in enumerate(samples):
-        mask = Ft[ns, :] > freq_thr
-        if np.any(mask):
-            keep_samples.append(s)
-            sample_nums.append(ns)
-
     cmap = mpl.colormaps.get("tab10")
-    colors = [mpl.colors.to_hex(cmap(s)) for s in sample_nums]
-    hist_data = []
-    for s in sample_nums:
+    hist_data, keep_samples, colors = []
+    for s, sample in enumerate(samples):
         mask = Ft[s, :] > freq_thr
-        pos = np.argwhere(mask).flatten() + 1
-        hist_data.append(pos)
+        if mask.sum() > 0:
+            pos = np.argwhere(mask).flatten() + 1
+            hist_data.append(pos)
+            colors.append(mpl.colors.to_hex(cmap(s)))
+            keep_samples.append(sample)
     fig = ff.create_distplot(
         hist_data, keep_samples, bin_size=1000, show_curve=False, colors=colors
     )
