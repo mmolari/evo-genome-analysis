@@ -270,7 +270,7 @@ def plotly_noncons(F, samples, freq_thr, savename):
     """Plot interactive non-consensus distribution with plotly"""
     Ft = F[:, 0, :]
     cmap = mpl.colormaps.get("tab10")
-    hist_data, keep_samples, colors = []
+    hist_data, keep_samples, colors = [], [], []
     for s, sample in enumerate(samples):
         mask = Ft[s, :] > freq_thr
         if mask.sum() > 0:
