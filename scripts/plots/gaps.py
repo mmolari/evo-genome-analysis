@@ -297,14 +297,18 @@ def plotly_gaps(F, samples, freq_thr, savename):
     Ft = F[:, 0, :]
     S = len(samples)
     cmap = mpl.colormaps.get("tab10")
-    colors = [mpl.colors.to_hex(cmap(s)) for s in range(S)]
-    hist_data = []
+    hist_data, colors, plot_samples = [], [], []
     for s in range(S):
         mask = Ft[s, :] > freq_thr
         pos = np.argwhere(mask).flatten() + 1
-        hist_data.append(pos)
+        # if sample has at least one gap
+        if len(pos) > 0:
+            hist_data.append(pos)
+            colors.append(mpl.colors.to_hex(cmap(s)))
+            plot_samples.append(samples[s])
+
     fig = ff.create_distplot(
-        hist_data, samples, bin_size=1000, show_curve=False, colors=colors
+        hist_data, plot_samples, bin_size=1000, show_curve=False, colors=colors
     )
     fig.update_layout(
         title=f"Gap distribution - frequency threshold = {freq_thr}",
@@ -312,7 +316,6 @@ def plotly_gaps(F, samples, freq_thr, savename):
         yaxis_title="prob. density",
         legend_title="samples",
     )
-    fig.write_html(savename)
 
 
 if __name__ == "__main__":
