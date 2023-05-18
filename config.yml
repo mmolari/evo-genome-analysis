@@ -17,3 +17,9 @@ plots:
     coverage-threshold: 5
     coverage-window: 100
     coverage-fraction: 0.5
+  clips:
+    n-top-trajs: 33
+    freq-threshold: 0.75
+    coverage-threshold: 5
+    coverage-window: 100
+    coverage-fraction: 0.1
