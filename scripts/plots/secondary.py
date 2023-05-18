@@ -16,50 +16,43 @@ def parse_args():
     parser.add_argument(
         "--L_thr",
         type=int,
-        help="minimum alignment length on primary/supplementary reference",
+        help="minimum alignment length on primary/secondary reference",
     )
     return parser.parse_args()
 
 
-def links(prim, suppl):
+def links(prim, sec):
     """Finds link between positions of primary and secondary mappings."""
 
-    # primary before suppl on query
-    prim_first = np.mean([prim["qs"], prim["qe"]]) < np.mean([suppl["qs"], suppl["qe"]])
-
     # same strandedness
-    strand = prim["fwd"] == suppl["fwd"]
+    strand = prim["fwd"] == sec["fwd"]
 
     # link point
-    if prim_first:
-        x = prim["re"] if prim["fwd"] else prim["rs"]
-        y = suppl["rs"] if suppl["fwd"] else suppl["re"]
-    else:
-        x = prim["rs"] if prim["fwd"] else prim["re"]
-        y = suppl["re"] if suppl["fwd"] else suppl["rs"]
+    x = np.mean([prim["rs"], prim["re"]])
+    y = np.mean([sec["rs"], sec["re"]])
     return x, y, strand
 
 
-def build_plot_df(df_suppl, df_prim, L_thr):
+def build_plot_df(df_sec, df_prim, L_thr):
     plot_df = []
-    for idx, suppl in df_suppl.iterrows():
-        qry = suppl["qry"]  # query name
+    for idx, sec in df_sec.iterrows():
+        qry = sec["qry"]  # query name
         prim = df_prim.loc[qry]  # corresponding primary mapping
-        ref_suppl = suppl["ref"]  # reference for supplementary mapping
+        ref_sec = sec["ref"]  # reference for secondary mapping
         ref_prim = prim["ref"]  # reference for primary mapping
 
-        # skip if primary or supplementary mappings are too short
-        if (prim["ref_len"] < L_thr) or (suppl["ref_len"] < L_thr):
+        # skip if primary or secondary mappings are too short
+        if (prim["ref_len"] < L_thr) or (sec["ref_len"] < L_thr):
             continue
 
-        x, y, s = links(prim, suppl)
+        x, y, s = links(prim, sec)
 
         plot_df.append(
             {
                 "primary": ref_prim,
-                "supplementary": ref_suppl,
+                "secondary": ref_sec,
                 "pos. primary": x,
-                "pos. suppl.": y,
+                "pos. secondary": y,
                 "strand": "same" if s else "opposite",
                 "qry": qry,
             }
@@ -71,7 +64,7 @@ def seaborn_plot(plot_df, refs, savename):
     grid = sns.FacetGrid(
         plot_df,
         col="primary",
-        row="supplementary",
+        row="secondary",
         hue="strand",
         sharex="col",
         sharey="row",
@@ -81,7 +74,7 @@ def seaborn_plot(plot_df, refs, savename):
         legend_out=True,
         hue_order=["same", "opposite"],
     )
-    grid.map(plt.scatter, "pos. primary", "pos. suppl.", alpha=0.1)
+    grid.map(plt.scatter, "pos. primary", "pos. secondary", alpha=0.1)
     for (row_val, col_val), ax in grid.axes_dict.items():
         ax.grid(True, alpha=0.2)
     grid.add_legend()
@@ -92,11 +85,11 @@ def plolty_plot(plot_df, refs, savename):
     fig = px.scatter(
         plot_df,
         x="pos. primary",
-        y="pos. suppl.",
+        y="pos. secondary",
         color="strand",
         facet_col="primary",
-        facet_row="supplementary",
-        category_orders={"primary": refs, "supplementary": refs},
+        facet_row="secondary",
+        category_orders={"primary": refs, "secondary": refs},
         opacity=0.1,
     )
     for i in range(len(refs)):
@@ -112,21 +105,21 @@ if __name__ == "__main__":
     # output files
     out_fld = pathlib.Path(args.plot_fld)
     out_fld.mkdir()
-    out_sns = out_fld / "supplementary_alignments.png"
-    out_html = out_fld / "supplementary_alignments.html"
+    out_sns = out_fld / "secondary_alignments.png"
+    out_html = out_fld / "secondary_alignments.html"
 
     # import read datafrane
     df = pd.read_csv(args.in_csv)
 
-    # separate in primary and supplementary alignments
-    df_suppl = df[df["suppl"]]
+    # separate in primary and secondary alignments
+    df_sec = df[df["sec"]]
     df_prim = df[(~df["sec"]) & (~df["suppl"])].set_index("qry")
 
     # list of references
     refs = np.sort(df["ref"].unique())
 
     # build plot dataframe
-    plot_df = build_plot_df(df_suppl, df_prim, args.L_thr)
+    plot_df = build_plot_df(df_sec, df_prim, args.L_thr)
 
     if len(plot_df) > 0:
         # seaborn plot

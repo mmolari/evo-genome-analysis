@@ -25,3 +25,5 @@ plots:
     coverage-fraction: 0.1
   supplementary:
     length-threshold: 50
+  secondary:
+    length-threshold: 50

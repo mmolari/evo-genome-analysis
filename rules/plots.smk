@@ -141,6 +141,24 @@ rule plot_supplementary:
         """
 
 
+rule plot_secondary:
+    input:
+        csv=rules.extract_nonprimary.output.csv,
+    output:
+        fld=directory(out_fld + "/figs/{ref_id}/non_primary/{sample_id}/secondary"),
+    params:
+        L_thr=plot_config["secondary"]["length-threshold"],
+    conda:
+        "../conda_envs/plots.yml"
+    shell:
+        """
+        python3 scripts/plots/secondary.py \
+            --L_thr {params.L_thr} \
+            --in_csv {input.csv} \
+            --plot_fld {output.fld} \
+        """
+
+
 rule plot_all:
     input:
         [
@@ -185,5 +203,9 @@ rule plot_all:
         ],
         [
             expand(rules.plot_supplementary.output, ref_id=ref, sample_id=reads)
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(rules.plot_secondary.output, ref_id=ref, sample_id=reads)
             for ref, reads in pileups.items()
         ],
