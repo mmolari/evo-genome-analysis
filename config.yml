@@ -23,3 +23,5 @@ plots:
     coverage-threshold: 5
     coverage-window: 100
     coverage-fraction: 0.1
+  supplementary:
+    length-threshold: 50
