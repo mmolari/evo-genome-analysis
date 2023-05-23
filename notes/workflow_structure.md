@@ -77,6 +77,8 @@ flowchart TD
   NonPrim("pileup/{ref_id}/non_primary/{sample_id}/
     non_primary.csv")
   Cts("/pileup/{ref_id}/{rec_id}/{coverage,gaps,consensus}.npz")
+  Icts("/pileup/{ref_id}/{rec_id}/insertions.npz")
+  Ccts("/pileup/{ref_id}/{rec_id}/clips.npz")
 
 	Sample --> |map_reads| Map
 	Ref --> Map
@@ -86,6 +88,10 @@ flowchart TD
   Map --> |extract_nonprimary| NonPrim
   Pileup --> |extract_counts| Cts
   Ref --> Cts
+  Pileup --> |extract_insertion_counts| Icts
+  Ref --> Icts
+  Pileup --> |extract_clip_counts| Ccts
+  Ref --> Ccts
 ```
 
 ### output file description by rule
@@ -103,6 +109,13 @@ flowchart TD
     - `fwd`/`sec`/`suppl`: whether the mapping is forward / secondary / supplementary
     - `rs`/`re`/`qs`/`qe`: reference/query start and end positions. Differently from the sam file, this is always in the forward frame of reference, so that start and end points can be compared for different mappings.
 - `extract_counts`: extract counts of coverage, consensus and gaps. These are (2,L) matrices, where L is the length of the reference sequence and the first index corresponds to fwd/rev reads. They contain integer values indicating counts.
+- `extract_insertion_counts`: extract counts of insertion number/length. These are (4,L) matrices - one per sample - contaning per position pair:
+  - fwd/rev number of insertions (idx 0-1).
+  - total fwd/rev inserted length (idx 2-3).
+- `extract_clip_counts`: extract counts of read clip number/length. These are (6,L) matrices - one per sample - contaning per position pair:
+  - fwd/rev number of clips (idx 0-1).
+  - fwd/rev n. of read ends (idx 2-3).
+  - total fwd/rev clipped length (idx 4-5).
 
 
 # conda environments

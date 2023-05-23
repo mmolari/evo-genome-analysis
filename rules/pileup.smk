@@ -114,11 +114,75 @@ rule extract_counts:
         """
 
 
+rule extract_insertion_counts:
+    input:
+        insertions=lambda w: expand(
+            rules.build_pileup.output.insertions,
+            sample_id=pileups[w.ref_id],
+            allow_missing=True,
+        ),
+        ref=rules.map_reads.input.ref,
+    output:
+        insertions=out_fld + "/pileup/{ref_id}/{rec_id}/insertions.npz",
+    params:
+        rec_id=lambda w: w.rec_id,
+    conda:
+        "../conda_envs/pileup.yml"
+    shell:
+        """
+        python3 scripts/pileup/extract_insertion_counts.py \
+            --ref_fasta {input.ref} \
+            --ref_record {params.rec_id} \
+            --ins_dicts {input.insertions} \
+            --ins_ct {output.insertions} \
+        """
+
+
+rule extract_clip_counts:
+    input:
+        clips=lambda w: expand(
+            rules.build_pileup.output.clips,
+            sample_id=pileups[w.ref_id],
+            allow_missing=True,
+        ),
+        ref=rules.map_reads.input.ref,
+    output:
+        clips=out_fld + "/pileup/{ref_id}/{rec_id}/clips.npz",
+    params:
+        rec_id=lambda w: w.rec_id,
+    conda:
+        "../conda_envs/pileup.yml"
+    shell:
+        """
+        python3 scripts/pileup/extract_clip_counts.py \
+            --ref_fasta {input.ref} \
+            --ref_record {params.rec_id} \
+            --clip_dicts {input.clips} \
+            --clip_ct {output.clips} \
+        """
+
+
 rule pileup_all:
     input:
         [
             expand(
                 rules.extract_counts.output,
+                ref_id=ref,
+                rec_id=ref_records[ref],
+            )
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(
+                rules.extract_insertion_counts.output,
+                ref_id=ref,
+                rec_id=ref_records[ref],
+            )
+            for ref, reads in pileups.items()
+        ],
+        [
+            expand(
+                rules.extract_clip_counts.output,
                 ref_id=ref,
                 rec_id=ref_records[ref],
             )

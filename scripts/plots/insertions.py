@@ -1,5 +1,3 @@
-# %%
-
 import argparse
 import numpy as np
 import pandas as pd
@@ -7,6 +5,41 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import plotly.figure_factory as ff
 import pathlib
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--freq_thr",
+        type=float,
+        help="parameter: frequency threshold for trajectory selection",
+    )
+    parser.add_argument(
+        "--cov_thr",
+        type=int,
+        help="parameter: threshold coverage for trajectory selection",
+    )
+    parser.add_argument(
+        "--cov_window",
+        type=int,
+        help="parameter: convolution window for coverage smoothing n. insertion selection",
+    )
+    parser.add_argument(
+        "--cov_fraction",
+        type=float,
+        help="parameter: fraction of the maximum coverage for n. insertion selection",
+    )
+    parser.add_argument(
+        "--n_top_trajs",
+        type=int,
+        help="parameter: max. number of selected trajectories",
+    )
+    parser.add_argument("--ins_npz", type=str, help="input: npz file with insertions")
+    parser.add_argument("--cov_npz", type=str, help="input: npz file with coverages")
+    parser.add_argument(
+        "--plot_fld", type=str, help="output: folder where to save plots"
+    )
+    return parser.parse_args()
 
 
 def load_npz(fname):
@@ -40,7 +73,7 @@ def insertion_arrays(Is, Cs):
         C = np.vstack([C.sum(axis=0), C])
         C = (C + np.roll(C, -1, axis=1)) / 2
         # C = np.minimum(C, np.roll(C, -1, axis=1))
-        I_freq.append(safe_division(I, C, extra=np.nan))
+        I_freq.append(safe_division(I, C, np.nan))
         C_num.append(C)
     # stack along new axis
     I_num = np.stack(I_num, axis=0)
@@ -251,8 +284,8 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
     plt.close(fig)
 
 
-def plotly_noncons(F, samples, freq_thr, savename):
-    """Plot interactive non-consensus distribution with plotly"""
+def plotly_insertions(F, samples, freq_thr, savename):
+    """Plot interactive insertions distribution with plotly"""
     Ft = F[:, 0, :]
     cmap = mpl.colormaps.get("tab10")
     hist_data, keep_samples, colors = [], [], []
@@ -267,7 +300,7 @@ def plotly_noncons(F, samples, freq_thr, savename):
         hist_data, keep_samples, bin_size=1000, show_curve=False, colors=colors
     )
     fig.update_layout(
-        title=f"distribution of non-consensus sites - frequency threshold = {freq_thr}",
+        title=f"distribution of insertions - frequency threshold = {freq_thr}",
         xaxis_title="position (bp)",
         yaxis_title="prob. density",
         legend_title="samples",
@@ -275,33 +308,35 @@ def plotly_noncons(F, samples, freq_thr, savename):
     fig.write_html(savename)
 
 
-def n_insertion_scatterplot(In, Cn, samples, savename):
+def n_insertion_scatterplot(
+    In, Cn, samples, coverage_window, coverage_fraction, savename
+):
+    """Scatter-plot of number of insertions per position in the genome.
+    This is compared with the rolling window average of the coverage."""
     positions = []
 
     S = len(samples)
     L = In.shape[2]
     fig, axs = plt.subplots(S, 1, figsize=(10, S * 4), sharex=True)
-    axs = axs.flatten()
     pos = np.arange(L, dtype=int)
+    kernel = np.ones(coverage_window) / coverage_window
     for k, s in enumerate(samples):
         ax = axs[k]
 
         for strand in [0, 1]:
-            # rolling window average of Cn
             factor = 1 if strand == 0 else -1
-            w = 100
-            Cn_avg = np.convolve(Cn[k, strand + 1, :], np.ones(w) / w, mode="same")
-            ax.plot(
+            # rolling window average of Cn
+            Cn_avg = np.convolve(Cn[k, strand + 1, :], kernel, mode="same")
+            ax.scatter(
                 pos,
                 factor * Cn_avg,
-                color="k",
-                linestyle="-",
-                alpha=0.3,
+                color="lightgray",
+                marker=".",
                 rasterized=True,
                 zorder=-1,
             )
             I = In[k, strand + 1, :]
-            mask = I > Cn_avg * 0.5
+            mask = I > Cn_avg * coverage_fraction
             ax.scatter(pos, I * factor, marker=".", c=mask, cmap="bwr", rasterized=True)
 
             for i in pos[mask]:
@@ -326,58 +361,59 @@ def n_insertion_scatterplot(In, Cn, samples, savename):
     return pd.DataFrame(positions)
 
 
-# %%
+if __name__ == "__main__":
+    args = parse_args()
 
-prefix = "../test_data/output-test-leo/pileup/reference_ST131I"
-ref_id = "R2_127_kbp"
-# ref_id = "R1_4963_kbp"
+    # define parameters
+    cov_thr = args.cov_thr
+    freq_thr = args.freq_thr
+    n_top_trajs = args.n_top_trajs
 
+    out_fld = pathlib.Path(args.plot_fld)
+    out_fld.mkdir()
+    out_summary = out_fld / "summary.png"
+    out_trajs = out_fld / "traj.png"
+    out_html = out_fld / "insertions.html"
+    out_csv_n = out_fld / "n_insertions.csv"
+    out_csv_traj = out_fld / "insertion_traj.csv"
+    out_n_insertions = out_fld / "n_insertions.png"
 
-ins_file = f"{prefix}/{ref_id}/insertions.npz"
-cov_file = f"{prefix}/{ref_id}/coverage.npz"
+    print("loading data...")
+    Is = load_npz(args.ins_npz)
+    Cs = load_npz(args.cov_npz)
 
-freq_thr = 0.8
-cov_thr = 10
+    print("creating tensors...")
+    In, If, Cn, samples = insertion_arrays(Is, Cs)
+    del Is, Cs
 
-# %%
+    print("computing delta-frequency...")
+    dF = relevant_deltaF(If, Cn, freq_thr, cov_thr)
 
+    print("summary plot...")
+    plot_summary(If, samples, freq_thr, dF, savename=out_summary)
 
-Is = load_npz(ins_file)
-Cs = load_npz(cov_file)
-In, If, Cn, samples = insertion_arrays(Is, Cs)
-dF = relevant_deltaF(If, Cn, freq_thr, cov_thr)
-S = len(samples)
-# %%
+    print("n. of insertions scatterplot...")
+    df = n_insertion_scatterplot(
+        In,
+        Cn,
+        samples,
+        coverage_window=args.cov_window,
+        coverage_fraction=args.cov_fraction,
+        savename=out_n_insertions,
+    )
+    df.to_csv(out_csv_n, index=False)
 
-out_summary = "summary.png"
-out_trajs = "traj.png"
-out_html = "noncons.html"
-out_csv_n = "test.csv"
-out_csv_traj = "test.csv"
-out_n_insertions = "n_insertions.png"
+    # create a dataframe with only relevant positions (deltaF >= 0)
+    df = deltaF_to_dataframe(dF, If, samples)
 
-n_top_trajs = 10
+    if len(df) > 0:
+        print("plotting relevant trajectories...")
+        # order clusters by max frequency, and select groups of trajectories
+        idxs = df.index.values[:n_top_trajs]
 
-plot_summary(If, samples, freq_thr, dF, savename=out_summary)
+        plot_traj(If, Cn, dF, samples, idxs, freq_thr, cov_thr, savename=out_trajs)
 
-df = n_insertion_scatterplot(In, Cn, samples, savename=out_n_insertions)
-df.to_csv(out_csv_n, index=False)
+        plotly_insertions(If, samples, freq_thr, savename=out_html)
 
-
-# create a dataframe with only relevant positions (deltaF >= 0)
-df = deltaF_to_dataframe(dF, If, samples)
-
-
-if len(df) > 0:
-    # order clusters by max frequency, and select groups of trajectories
-    idxs = df.index.values[:n_top_trajs]
-
-    plot_traj(If, Cn, dF, samples, idxs, freq_thr, cov_thr, savename=out_trajs)
-
-    plotly_noncons(If, samples, freq_thr, savename=out_html)
-
-    # export dataframe
-    df.to_csv(out_csv_traj, index=False)
-
-
-# %%
+        # export dataframe
+        df.to_csv(out_csv_traj, index=False)
