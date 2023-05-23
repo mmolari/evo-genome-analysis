@@ -1,0 +1,8 @@
+input: "test_data/input-test-leo"
+output: "test_data/output-test-leo"
+pileups:
+    reference_ST131I:
+    - "sample1"
+    - "sample2"
+    - "sample3"
+    - "sample4"
