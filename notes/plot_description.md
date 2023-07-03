@@ -6,6 +6,9 @@
 - [coverage](#coverage)
 - [consensus](#consensus)
 - [gaps](#gaps)
+- [insertions](#insertions)
+- [clips](#clips)
+- [secondary/supplementary alignments](#secondarysupplementary-mappings)
 
 ## coverage 
 
@@ -106,3 +109,61 @@ Positions are ordered by `deltaF`. Columns are:
 - `pos`: position on the genome (1-based)
 - `F_{sample-id}`: frequency in each sample.
 - `gap_cluster`: positions that are adjacent are assigned to the same gap-cluster. This column contains the id of the cluster.
+
+## insertions
+
+### summary
+
+![insertion summary](assets/ins_summary.png)
+
+Similarly to consensus frequency and gaps, we generate a summary plot for **insertion frequency**, defined as the number of insertion on a given site divided by the average coverage of the site before and after the insertion. Notice that this frequency estimation is noisy and can occasionally be greater than one. Sites with above-threshold frequency (see config file) are selected and the delta-frequency is evaluated and displayed.
+
+### trajectories
+
+![insertion trajectories](assets/ins_traj.png)
+
+Similarly to consensus frequency and gaps, also for these sites the insertion frequency trajectories are displayed as in this example. The numerical values for each trajectory are exported in `insertion_traj.csv`.
+
+### n. of insertions
+
+![n_insertions](assets/n_insertions.png)
+
+If an insertion fixates in the population, this will be visible as a region with a high number of insertions, comparable to the coverage in that region.
+To detect this in this plot we display the number of insertions per site (blue dots), and compare it to the coverage averaged over a sliding window of `coverage-window` bp (gray dots, see config file). Points whose number of insertions are above a fraction `coverage-fraction` of the average coverage are highlighted in red.
+
+The sample, position, strand, and number of insertions of these highlighted data-points are exported in a csv file `n_insertions.csv`.
+
+## clips
+
+The overhangs of reads that only partially map to the reference are saved as **clips**. A region with a high clip density might indicate a long insertion/deletion or a genomic rearrangements. For circular genomes, the beginning and end of the reference always contain a high number of clips.
+
+### summary
+
+![clip summary](assets/clips_summary.png)
+
+The **clip frequency** is defined as the number of clips in a given position divided by the maximum coverage of the position before/after the clip. Notice that since coverage is subject to quality-filtering this fraction can occasionally be greater than one. The coverage frequency and delta-frequency are displayed as in a summary plot, similar to the previous ones. The parameter of the plot can be set in the config file.
+
+### trajectories
+
+![clip trajectories](assets/clip_trajs.png)
+
+Similarly to the other cases, above-frequency-threshold trajectories are displayed in a trajectory plot. The numerical values for each trajectory are exported in `clip_trajs.csv`.
+
+### n. of clips
+
+![n_clips](assets/n_clips.png)
+
+Moreover, similarly to what done for insertions, the number of clips per site is displayed, and compared to the average coverage over a sliding window of `coverage-window` bp (gray dots, see config file). Points whose number of clips are above a fraction `coverage-fraction` of the average coverage are highlighted in red.
+
+## secondary/supplementary mappings
+
+Reads that can be mapped on multiple references are saved as secondary or supplementary mappings.
+Every read that can be mapped to a reference is associated to a **primary mapping**.
+- A **secondary mapping** is associated to a mapping between the same part of the read that is covered by the primary mapping, and a different part of the reference. This occurs for example in the context of duplications.
+- A **supplementary mapping** is associated to a mapping between a different part of the read (not covered by the primary mapping) and another part of the reference. This usually indicates a large deletion or a genomic rearrangement.
+
+![secondary mappings](assets/secondary_alignments.png)
+
+We display these mappings as a matrix, with on the x-axis the position of the primary mapping and on the y-axis the position of the secondary mapping. The color indicates whether the mappings have compatible strandedness (fwd/fwd or rev/rev - blue) or are inverted (fwd/rev or rev/fwd - orange).
+
+For secondary mappings the coordinate considered is the middle point between the start and end of the mapping on the reference. For secondary mappings we consider either the start or end of the read of the reference, depending of the relative orientation of the mappings on the query.
