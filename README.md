@@ -11,3 +11,5 @@ Example run command for cluster execution:
 ```bash
 snakemake --profile cluster --config run_config=test_data/run_config.yml
 ```
+
+A description of the produced plots is provided in this [note](notes/plot_description.md).
