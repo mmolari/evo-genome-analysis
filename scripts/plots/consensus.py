@@ -11,6 +11,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--freq_thr", type=float)
     parser.add_argument("--cov_thr", type=int)
+    parser.add_argument("--noise_thr", type=float)
+    parser.add_argument("--noise_tol", type=float)
     parser.add_argument("--n_top_trajs", type=int)
     parser.add_argument("--cons_npz", type=str)
     parser.add_argument("--cov_npz", type=str)
@@ -69,7 +71,7 @@ def load_tensors(cons_file, cov_file):
     return F, C, samples
 
 
-def relevant_deltaF(F, C, freq_thr, cov_thr):
+def relevant_deltaF(F, C, freq_thr, cov_thr, noise_thr, noise_tol):
     """
     Evaluate a per-position delta-frequency (Fmax - Fmin) vector.
     Only sites that have above thresholds fwd and rev coverage are considered
@@ -78,22 +80,29 @@ def relevant_deltaF(F, C, freq_thr, cov_thr):
     All the other sites are assigned a deltaF of -inf.
     """
 
+    # true where site should not be discarded
+    mask_keep = np.ones_like(F[:, 0, :], dtype=bool)
+
     # mask relevant coverages (sites that have fwd & rev coverage above threshold)
     # shape (n_samples, L)
     mask_fwd = C[:, 1, :] >= cov_thr
     mask_rev = C[:, 2, :] >= cov_thr
-    mask_cov = mask_fwd & mask_rev
+    mask_keep &= mask_fwd & mask_rev
+
+    # remove sites that have |fwd_freq-rev_freq| < avg_freq * noise_thr + noise_tol
+    noise_mask = np.abs(F[:, 1, :] - F[:, 2, :]) <= F[:, 0, :] * noise_thr + noise_tol
+    mask_keep &= noise_mask
 
     # evaluate maximum/minimum non-masked frequency
-    allnan = np.all(~mask_cov, axis=0)
+    allnan = np.all(~mask_keep, axis=0)
 
     F_max = np.copy(F[:, 0, :])
-    F_max[~mask_cov] = np.nan
+    F_max[~mask_keep] = np.nan
     F_max = np.nanmax(F_max, axis=0, initial=0)
     F_max[allnan] = np.nan
 
     F_min = np.copy(F[:, 0, :])
-    F_min[~mask_cov] = np.nan
+    F_min[~mask_keep] = np.nan
     F_min = np.nanmin(F_min, axis=0, initial=1)
     F_min[allnan] = np.nan
 
@@ -291,12 +300,13 @@ def plotly_noncons(F, samples, freq_thr, savename):
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     # define parameters
     cov_thr = args.cov_thr
     freq_thr = args.freq_thr
+    noise_thr = args.noise_thr
+    noise_tol = args.noise_tol
     n_top_trajs = args.n_top_trajs
 
     out_fld = pathlib.Path(args.plot_fld)
@@ -311,7 +321,14 @@ if __name__ == "__main__":
     F, C, samples = load_tensors(args.cons_npz, args.cov_npz)
 
     # compute deltaF for each position
-    deltaF = relevant_deltaF(F, C, freq_thr=freq_thr, cov_thr=cov_thr)
+    deltaF = relevant_deltaF(
+        F,
+        C,
+        freq_thr=freq_thr,
+        cov_thr=cov_thr,
+        noise_thr=noise_thr,
+        noise_tol=noise_tol,
+    )
 
     plot_summary(F, samples, freq_thr, deltaF, savename=out_summary)
 
