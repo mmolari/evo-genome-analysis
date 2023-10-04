@@ -27,6 +27,12 @@ This plot is also produced in an html interactive version done with plotly.
 - **deltaF**: when multiple samples are given, the delta-frequency at a given position represents the difference between maximum and minimum non-consensus frequency observed at that position.
   - since frequency are subject to sampling noise, we set a minimum coverage threshold `coverage-threshold` in the config file. For each sample, only positions with fwd and rev coverage both above this threshold are considered.
   - to exclude most of the uninteresting positions, we set a minimal frequency threshold (`freq-threshold` in the config file). Only positions with Fmax above this threshold are assigned a delta-frequency.
+  - in the config file one can also set we can also set a maximal initial frequency (`max-initial-freq`). The idea is that one is interested in detecting positions that at the beginning of evolution are equal to the reference, and that mutate later on during evolution. Trajectories with initial average frequency above this value are discarded.
+  - finally, to remove noisy positions one can look at the difference between the forward and reverse consensus frequency $f_F$ and $f_R$. If this difference is big compared to the average frequency $\bar f$ then the timepoint can be discarded as noisy. In particular we discard sites for which
+    $$|f_F - f_R| > \alpha \bar f + \beta$$
+    where $\alpha$ and $\beta$ are parameters in the config file.
+    - $\alpha$ (`fwd-rev-noise-threshold`) corresponds to the threshold noise-to-signal ratio
+    - $\beta$ (`fwd-rev-noise-tolerance`) is a tolerance parameter to accept small variation between forward and reverse frequency when the average frequency is small.
 
 ### non-consensus summary
 
