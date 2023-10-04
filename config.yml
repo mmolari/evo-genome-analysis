@@ -13,6 +13,7 @@ plots:
     coverage-threshold: 5
     fwd-rev-noise-threshold: 0.2
     fwd-rev-noise-tolerance: 0.05
+    max-initial-freq: 0.1
   insertions:
     n-top-trajs: 33
     freq-threshold: 0.5

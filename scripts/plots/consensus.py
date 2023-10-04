@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument("--cov_thr", type=int)
     parser.add_argument("--noise_thr", type=float)
     parser.add_argument("--noise_tol", type=float)
+    parser.add_argument("--max_initial_freq", type=float)
     parser.add_argument("--n_top_trajs", type=int)
     parser.add_argument("--cons_npz", type=str)
     parser.add_argument("--cov_npz", type=str)
@@ -71,7 +72,7 @@ def load_tensors(cons_file, cov_file):
     return F, C, samples
 
 
-def relevant_deltaF(F, C, freq_thr, cov_thr, noise_thr, noise_tol):
+def relevant_deltaF(F, C, freq_thr, cov_thr, noise_thr, noise_tol, max_fi):
     """
     Evaluate a per-position delta-frequency (Fmax - Fmin) vector.
     Only sites that have above thresholds fwd and rev coverage are considered
@@ -109,6 +110,10 @@ def relevant_deltaF(F, C, freq_thr, cov_thr, noise_thr, noise_tol):
     # evaluate distance between covered max and min frequencies
     # shape (L)
     dF = F_max - F_min
+
+    # exclude sites that have initial frequency above max_fi at the first timepoint
+    mask = F[0, 0, :] <= max_fi
+    dF[~mask] = -np.inf
 
     # at least one above-frequency-threshold and above-coverage point
     # shape (L)
@@ -217,7 +222,7 @@ def plot_summary(F, samples, freq_thr, dF, savename):
     plt.close(fig)
 
 
-def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
+def plot_traj(F, C, dF, samples, idxs, freq_thr, f0_thr, cov_thr, savename):
     """Plot selected frequency trajectories"""
 
     I = len(idxs)
@@ -262,6 +267,7 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, cov_thr, savename):
         ax.set_title(f"pos {i+1}  |  dF={dF[i]:.2f}")
         ax.grid(alpha=0.2)
         ax.axhline(freq_thr, color="lightgray", linestyle="--")
+        ax.axhline(f0_thr, color="lightgray", linestyle="--")
 
     for ax in axs[-1, :]:
         # ax.set_xlabel("sample")
@@ -307,6 +313,7 @@ if __name__ == "__main__":
     freq_thr = args.freq_thr
     noise_thr = args.noise_thr
     noise_tol = args.noise_tol
+    max_fi = args.max_initial_freq
     n_top_trajs = args.n_top_trajs
 
     out_fld = pathlib.Path(args.plot_fld)
@@ -328,6 +335,7 @@ if __name__ == "__main__":
         cov_thr=cov_thr,
         noise_thr=noise_thr,
         noise_tol=noise_tol,
+        max_fi=max_fi,
     )
 
     plot_summary(F, samples, freq_thr, deltaF, savename=out_summary)
@@ -339,7 +347,9 @@ if __name__ == "__main__":
         # order clusters by max frequency, and select groups of trajectories
         idxs = df.index.values[:n_top_trajs]
 
-        plot_traj(F, C, deltaF, samples, idxs, freq_thr, cov_thr, savename=out_trajs)
+        plot_traj(
+            F, C, deltaF, samples, idxs, freq_thr, max_fi, cov_thr, savename=out_trajs
+        )
 
         plotly_noncons(F, samples, freq_thr, savename=out_html)
 

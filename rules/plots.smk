@@ -54,6 +54,7 @@ rule plot_consensus:
         cov_thr=plot_config["consensus"]["coverage-threshold"],
         noise_thr=plot_config["consensus"]["fwd-rev-noise-threshold"],
         noise_tol=plot_config["consensus"]["fwd-rev-noise-tolerance"],
+        max_initial_freq=plot_config["consensus"]["max-initial-freq"],
         n_top_trajs=plot_config["consensus"]["n-top-trajs"],
     conda:
         "../conda_envs/plots.yml"
@@ -64,6 +65,7 @@ rule plot_consensus:
             --cov_thr {params.cov_thr} \
             --noise_thr {params.noise_thr} \
             --noise_tol {params.noise_tol} \
+            --max_initial_freq {params.max_initial_freq} \
             --n_top_trajs {params.n_top_trajs} \
             --cons_npz {input.cons} \
             --cov_npz {input.cov} \
