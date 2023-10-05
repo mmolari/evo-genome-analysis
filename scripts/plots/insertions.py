@@ -451,7 +451,9 @@ if __name__ == "__main__":
         # order clusters by max frequency, and select groups of trajectories
         idxs = df.index.values[:n_top_trajs]
 
-        plot_traj(If, Cn, dF, samples, idxs, freq_thr, cov_thr, savename=out_trajs)
+        plot_traj(
+            If, Cn, dF, samples, idxs, freq_thr, max_fi, cov_thr, savename=out_trajs
+        )
 
         plotly_insertions(If, samples, freq_thr, savename=out_html)
 
