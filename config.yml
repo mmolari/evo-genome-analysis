@@ -32,6 +32,9 @@ plots:
     coverage-threshold: 5
     coverage-window: 100
     coverage-fraction: 0.1
+    fwd-rev-noise-threshold: 0.2
+    fwd-rev-noise-tolerance: 0.05
+    max-initial-freq: 0.1
   supplementary:
     length-threshold: 50
   secondary:

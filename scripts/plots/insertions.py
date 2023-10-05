@@ -452,7 +452,15 @@ if __name__ == "__main__":
         idxs = df.index.values[:n_top_trajs]
 
         plot_traj(
-            If, Cn, dF, samples, idxs, freq_thr, max_fi, cov_thr, savename=out_trajs
+            If,
+            Cn,
+            dF,
+            samples,
+            idxs,
+            freq_thr=freq_thr,
+            f0_thr=max_fi,
+            cov_thr=cov_thr,
+            savename=out_trajs,
         )
 
         plotly_insertions(If, samples, freq_thr, savename=out_html)
