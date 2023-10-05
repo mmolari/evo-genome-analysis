@@ -77,8 +77,10 @@ def relevant_deltaF(F, C, freq_thr, cov_thr, noise_thr, noise_tol, max_fi):
     Evaluate a per-position delta-frequency (Fmax - Fmin) vector.
     Only sites that have above thresholds fwd and rev coverage are considered
     for Fmax and Fmin.
-    Moreover, only sites with above frequency-threshold Fmax are considered.
+    Only sites with above frequency-threshold Fmax are considered.
     All the other sites are assigned a deltaF of -inf.
+    Also, sites in which |freq_fwd - freq_rev| > noise_thr * avg_freq + noise_tol are discarded.
+    Finally, trajectories whose initial frequency is above max_fi are discarded.
     """
 
     # true where site should not be discarded
@@ -266,8 +268,8 @@ def plot_traj(F, C, dF, samples, idxs, freq_thr, f0_thr, cov_thr, savename):
         )
         ax.set_title(f"pos {i+1}  |  dF={dF[i]:.2f}")
         ax.grid(alpha=0.2)
-        ax.axhline(freq_thr, color="lightgray", linestyle="--")
-        ax.axhline(f0_thr, color="lightgray", linestyle="--")
+        ax.axhline(freq_thr, color="lightblue", linestyle="--")
+        ax.axhline(f0_thr, color="gold", linestyle="--")
 
     for ax in axs[-1, :]:
         # ax.set_xlabel("sample")

@@ -84,6 +84,9 @@ rule plot_insertions:
         cov_thr=plot_config["insertions"]["coverage-threshold"],
         n_top_trajs=plot_config["insertions"]["n-top-trajs"],
         cov_window=plot_config["insertions"]["coverage-window"],
+        noise_thr=plot_config["insertions"]["fwd-rev-noise-threshold"],
+        noise_tol=plot_config["insertions"]["fwd-rev-noise-tolerance"],
+        max_initial_freq=plot_config["insertions"]["max-initial-freq"],
         cov_fraction=plot_config["insertions"]["coverage-fraction"],
     conda:
         "../conda_envs/plots.yml"
@@ -92,6 +95,9 @@ rule plot_insertions:
         python3 scripts/plots/insertions.py \
             --freq_thr {params.freq_thr} \
             --cov_thr {params.cov_thr} \
+            --noise_thr {params.noise_thr} \
+            --noise_tol {params.noise_tol} \
+            --max_initial_freq {params.max_initial_freq} \
             --n_top_trajs {params.n_top_trajs} \
             --ins_npz {input.ins} \
             --cov_npz {input.cov} \
