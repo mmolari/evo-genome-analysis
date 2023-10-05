@@ -108,7 +108,6 @@ def plot_html(cov_dict, step, fig_name):
     bins = np.linspace(0, cov_max, 1000)
 
     for sample, cov in cov_dict.items():
-
         # plot coverage cumulative distribution
         y = np.histogram(cov, bins=bins)[0].cumsum() / cov.size
         x = bins[:-1]
@@ -141,7 +140,6 @@ def plot_html(cov_dict, step, fig_name):
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     out_fld = pathlib.Path(args.out_fld)

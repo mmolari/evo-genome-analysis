@@ -7,22 +7,34 @@ plots:
     n-top-trajs: 33
     freq-threshold: 0.75
     coverage-threshold: 5
+    fwd-rev-noise-threshold: 0.2
+    fwd-rev-noise-tolerance: 0.05
+    max-initial-freq: 0.1
   consensus:
     n-top-trajs: 33
-    freq-threshold: 0.75
+    freq-threshold: 0.5
     coverage-threshold: 5
+    fwd-rev-noise-threshold: 0.2
+    fwd-rev-noise-tolerance: 0.05
+    max-initial-freq: 0.1
   insertions:
     n-top-trajs: 33
     freq-threshold: 0.5
     coverage-threshold: 5
     coverage-window: 100
     coverage-fraction: 0.5
+    fwd-rev-noise-threshold: 0.2
+    fwd-rev-noise-tolerance: 0.05
+    max-initial-freq: 0.1
   clips:
     n-top-trajs: 33
-    freq-threshold: 0.75
+    freq-threshold: 0.5
     coverage-threshold: 5
     coverage-window: 100
     coverage-fraction: 0.1
+    fwd-rev-noise-threshold: 0.2
+    fwd-rev-noise-tolerance: 0.05
+    max-initial-freq: 0.1
   supplementary:
     length-threshold: 50
   secondary:
