@@ -53,6 +53,8 @@ We rank relevant positions - i.e. sites with an assigned delta-frequency - by va
 
 For each selected position we plot the non-consensus frequency (black line). We also indicate the forward (blue right arrow) and reverse (orange left arrow) frequencies. This is a proxy measure of noise in the frequency determination. A large discrepancy between these two values might indicate an artifact of sequencing. These arrow have high transparency if (fwd or rev) coverage is below the `coverage-threshold`.
 
+Horizontal dashed lines indicated the maximal initial frequency (orange, `max-initial-freq` in config file) and the minimal relevant frequency threshold (blue, `freq-threshold` in config file). Positions with initial frequency above the maximal initial frequency are discarded. Positions with all frequencies below the minimal relevant frequency threshold are not considered for the delta-frequency.
+
 ### csv file
 
 We also export a csv file with informations on all relevant positions:
@@ -79,6 +81,12 @@ Columns indicate:
 - **deltaF**: when multiple samples are given, the delta-frequency at a given position represents the difference between maximum and minimum gap frequency observed at that position.
   - since frequency are subject to sampling noise, we set a minimum coverage threshold `coverage-threshold` in the config file. For each sample, only positions with fwd and rev coverage both above this threshold are considered.
   - to exclude most of the uninteresting positions, we set a minimal frequency threshold (`freq-threshold` in the config file). Only positions with Fmax above this threshold are assigned a delta-frequency.
+  - in the config file one can also set we can also set a maximal initial frequency (`max-initial-freq`). The idea is that one is interested in detecting positions that at the beginning of evolution are equal to the reference, and that mutate later on during evolution. Trajectories with initial average frequency above this value are discarded.
+  - finally, to remove noisy positions one can look at the difference between the forward and reverse consensus frequency $f_F$ and $f_R$. If this difference is big compared to the average frequency $\bar f$ then the timepoint can be discarded as noisy. In particular we discard sites for which
+    $$|f_F - f_R| > \alpha \bar f + \beta$$
+    where $\alpha$ and $\beta$ are parameters in the config file.
+    - $\alpha$ (`fwd-rev-noise-threshold`) corresponds to the threshold noise-to-signal ratio
+    - $\beta$ (`fwd-rev-noise-tolerance`) is a tolerance parameter to accept small variation between forward and reverse frequency when the average frequency is small.
 
 ### gap summary
 
