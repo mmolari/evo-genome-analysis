@@ -40,11 +40,4 @@ this file is passed as input in the pipeline as `run_config` parameter using the
 snakemake --config run_config=myconfig.yml
 ```
 
-Moreover the general workflow `config.yaml` file more options can be controlled:
-```yaml
-pileup:
-    qual_min: 15
-    clip_minL: 100
-```
-- `qual_min` controls the minimum quality of reads to be kept in the pileup.
-- `clip_minL` controls the minimum length of clips to be saved in the clipped reads dictionary.
+Moreover the general workflow `config.yaml` file more options can be controlled. These are described in the [plot description](plot_description.md) file.
