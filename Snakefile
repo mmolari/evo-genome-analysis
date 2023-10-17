@@ -1,10 +1,17 @@
-configfile: "config.yml"
-
-
 import yaml
 import pathlib
 import numpy as np
 import json
+import sys
+
+
+#  check that config file is provided
+def check_configfile():
+    if "--configfile" not in sys.argv:
+        raise ValueError("Please specify a config file using the --configfile flag.")
+
+
+check_configfile()
 
 # make create log folder, required for cluster execution
 pathlib.Path("log").mkdir(exist_ok=True)
@@ -29,13 +36,8 @@ def extract_record_names(fasta_file):
     return records
 
 
-def parse_pileup_config(yaml_file):
-    """parser for yaml pileup config file."""
-
-    # read file
-    with open(yaml_file, "r") as f:
-        rc = yaml.safe_load(f)
-
+def parse_pileup_config(rc):
+    """parser for pileup part of the config file."""
     # extract fasta record names for each reference
     records = {}
     for ref_name in rc["pileups"]:
@@ -45,12 +47,6 @@ def parse_pileup_config(yaml_file):
 
     return rc
 
-
-# check that `run_config` is defined
-if not "run_config" in config:
-    raise RuntimeError(
-        "the parameter run_config is not defined. Define it with --config run_config=myfile.yml"
-    )
 
 # extract pileup config options
 run_config = parse_pileup_config(config["run_config"])
