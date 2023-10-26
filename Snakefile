@@ -7,9 +7,25 @@ import sys
 
 #  check that config file is provided
 def check_configfile():
-    if "--configfile" not in sys.argv:
-        raise ValueError("Please specify a config file using the --configfile flag.")
+    try:
+        msg = f"""
+----------- loading config file -----------
+--- run config:
+{config["run_config"]}
 
+--- pileup
+{config["pileup"]}
+
+--- plots
+{config["plots"]}
+-------------------------------------------
+
+"""
+        print(msg)
+    except:
+        raise Exception("config file not specified. Please specify with --configfile flag.")
+    
+    
 
 check_configfile()
 
