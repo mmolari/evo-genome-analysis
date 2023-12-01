@@ -3,12 +3,12 @@
         "time": "00:29:00",
         "qos": "30min",
         "n": 1,
-        "mem": "4G"
+        "mem": "8G"
     },
     "build_pileup": {
         "time": "05:55:00",
         "qos": "6hours",
         "n": 1,
-        "mem": "15G"
+        "mem": "16G"
     }
 }
