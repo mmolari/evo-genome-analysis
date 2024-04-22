@@ -10,13 +10,17 @@ input_fld/
 │   └── ...
 └── references
     ├── ref_1.fa
+    ├── ref_1.gbk (optional)
     ├── ref_2.fa
+    ├── ref_2.gbk (optional)
     └── ...
 ```
 
 The name of the reads and reference files is arbitrary, but the extensions must be `.fastq.gz` and `.fa` respectively.
 
 The name of records in reference files must be short (less than 20 characters) and *not contain any spaces* since it will be used to generate names of the subfiles.
+
+For the part of the pipeline that extract annotations for relevant mutated positions, a GenBank file must be present amongst the references. It must have the same prefix as the references, and the records must have the same name as in the multi-fasta files.
 
 ## configuration file
 

@@ -19,29 +19,31 @@ rule concat_positions:
         """
 
 
-# rule assing_annotations:
-#     input:
-#         ref=in_fld + "/references/{ref_id}.gbk",
-#         pos=rules.concat_positions.output,
-#     output:
-#         ann=out_fld + "/annotations/{ref_id}/{rec_id}/annotations.csv",
-#     conda:
-#         "../conda_envs/plots.yml"
-#     shell:
-#         """
-#         python scripts/annotations/assign_annotations.py \
-#             --ref {input.ref} \
-#             --record {wildcards.rec_id} \
-#             --pos {input.pos} \
-#             --out {output.ann}
-#         """
+rule assing_annotations:
+    input:
+        ref=in_fld + "/references/{ref_id}.gbk",
+        pos=rules.concat_positions.output,
+    output:
+        hit=out_fld + "/annotations/{ref_id}/{rec_id}/annotations_hit.csv",
+        miss=out_fld + "/annotations/{ref_id}/{rec_id}/annotations_miss.csv",
+    conda:
+        "../conda_envs/plots.yml"
+    shell:
+        """
+        python scripts/annotations/assign_annotations.py \
+            --ref {input.ref} \
+            --record {wildcards.rec_id} \
+            --pos {input.pos} \
+            --out_hit {output.hit} \
+            --out_miss {output.miss}
+        """
 
 
-rule annotations_all:
+rule annotate_all:
     input:
         [
             expand(
-                rules.concat_positions.output,
+                rules.assing_annotations.output,
                 ref_id=ref,
                 rec_id=ref_records[ref],
             )

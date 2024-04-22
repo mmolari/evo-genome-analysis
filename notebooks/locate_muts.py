@@ -95,7 +95,7 @@ def parse_features(feature_dict, seq):
 
             match res["type"]:
                 case "CDS":
-                    for key in ["gene", "product", "locus_tag", "codon_start"]:
+                    for key in ["gene", "product", "locus_tag"]:
                         if key in feature.qualifiers:
                             res[key] = feature.qualifiers[key][0]
                     res |= parse_cds(feature, seq, pos)
@@ -114,10 +114,10 @@ def parse_features(feature_dict, seq):
 
 
 # positions in 1-based numbering
-pos = [1, 69, 70, 71, 72, 73, 1403, 1404, 1405, 7535, 7536, 7537, 8191, 8192, 8193]
+pos = [4043149, 2832558, 2953318]
 
-fname = "../test_data/input-test-leo/references/bakta/reference_ST131I.gbff"
-rec_name = "contig_1"
+fname = "../test_data/input-test-leo/references/ST131-I.gbk"
+rec_name = "R1_4963_kbp"
 res, seq = parse_genbank(
     fname,
     rec_name,
