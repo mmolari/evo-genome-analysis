@@ -13,3 +13,6 @@ snakemake --profile cluster --configfile test_data/run_config.yml
 ```
 
 A description of the produced plots is provided in this [note](notes/plot_description.md).
+
+> [!IMPORTANT]  
+> The pipeline was developed for snakemake v7. Version 8 might introduce breaking changes for which the pipeline was not tested.

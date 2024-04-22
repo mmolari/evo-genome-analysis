@@ -23,9 +23,10 @@ def check_configfile():
 """
         print(msg)
     except:
-        raise Exception("config file not specified. Please specify with --configfile flag.")
-    
-    
+        raise Exception(
+            "config file not specified. Please specify with --configfile flag."
+        )
+
 
 check_configfile()
 
@@ -83,6 +84,7 @@ print("------------------------------------------")
 
 include: "rules/pileup.smk"
 include: "rules/plots.smk"
+include: "rules/annotations.smk"
 
 
 rule all:
