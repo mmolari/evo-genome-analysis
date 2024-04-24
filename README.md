@@ -16,9 +16,9 @@ A description of the produced plots is provided in this [note](notes/plot_descri
 
 ## retrieving annotations
 
-To retrieve annotations, execute the pipeline with:
+To also retrieve annotations, execute the pipeline with:
 ```bash
-snakemake annotate_all --profile local --configfile test_data/run_config.yml
+snakemake plot_all annotate_all --profile cluster --configfile test_data/run_config.yml
 ```
 This will produce files in the `annotations` folder with extracted mutated positions (`positions.csv`), and extracted annotations for positions that fall inside of a feature (`annotations_hit.csv`) or extracted closest forward and reverse annotations for positions that fall outside of a feature (`annotations_miss.csv`).
 
