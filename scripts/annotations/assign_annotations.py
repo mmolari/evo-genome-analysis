@@ -109,6 +109,10 @@ def parse_feature(feature):
             for key in ["product", "locus_tag"]:
                 if key in feature.qualifiers:
                     res[key] = feature.qualifiers[key][0]
+        case "tRNA":
+            for key in ["product", "locus_tag"]:
+                if key in feature.qualifiers:
+                    res[key] = feature.qualifiers[key][0]
         case _:
             raise ValueError(
                 f"Processing of feature type {res['type']} not implemented"
