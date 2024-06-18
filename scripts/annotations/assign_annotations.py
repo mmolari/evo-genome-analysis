@@ -21,9 +21,11 @@ def parse_genbank(fname, record_name, pos_list):
     results = defaultdict(list)
     seq = None
     record_found = False
+    found_records = []
     with open(fname) as handle:
         for record in SeqIO.parse(handle, "genbank"):
-            if record.id != record_name:
+            found_records.append(record.name)
+            if record.name != record_name:
                 continue
             record_found = True
             for feature in record.features:
@@ -34,7 +36,7 @@ def parse_genbank(fname, record_name, pos_list):
                     if int(pos) in feature:
                         results[pos].append(feature)
 
-    assert record_found, f"Record {record_name} not found in {fname}"
+    assert record_found, f"Record {record_name} not found in {fname} -> {found_records}"
     return results, seq
 
 
@@ -46,11 +48,15 @@ def parse_cds(feature, seq, pos):
     - codon
     - position in codon
     """
+    w = "none"
     # 0-based
     assert type(pos) == SeqFeature.ExactPosition
-    assert (
-        type(feature.location) == SeqFeature.SimpleLocation
-    )  # only simple location implemented
+    # only simple location implemented
+    if type(feature.location) != SeqFeature.SimpleLocation:
+        print(f"# not simple location!")
+        print(f"{pos=}")
+        print(f"{feature=}")
+        w = "not simple location!"
     b, e = feature.location.start, feature.location.end
 
     # nucleotide position in the cds
@@ -83,6 +89,7 @@ def parse_cds(feature, seq, pos):
         "cds_len": len(feature.location),  # length of cds
         "protein_len": len(feature.location) // 3,  # length of protein
         "transl_nucl": transl_nucl,  # nucleotide in translated direction
+        "warning": w, # warning if not simple location
     }
 
     return res
@@ -154,7 +161,7 @@ def find_prev_next_CDS(fname, record_name, pos):
     d_left = np.inf
     with open(fname) as handle:
         for record in SeqIO.parse(handle, "genbank"):
-            if record.id != record_name:
+            if record.name != record_name:
                 continue
             for feature in record.features:
                 if feature.type == "source":

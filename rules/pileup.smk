@@ -72,7 +72,7 @@ rule build_pileup:
     params:
         min_q=pileup_config["qual_min"],
         min_L=pileup_config["clip_minL"],
-        out_dir=lambda w: out_fld + f"/pileup/{w.ref_id}/{w.rec_id}/{w.sample_id}",
+        out_dir=lambda w: (out_fld + f"/pileup/{w.ref_id}/{w.rec_id}/{w.sample_id}").replace(" ", ""),
     conda:
         "../conda_envs/pileup.yml"
     shell:
