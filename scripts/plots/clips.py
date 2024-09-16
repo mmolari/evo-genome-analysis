@@ -54,6 +54,7 @@ def parse_args():
     parser.add_argument(
         "--plot_fld", type=str, help="output: folder where to save plots"
     )
+    parser.add_argument("--samples_order", nargs="+", type=str, help="order of samples")
     return parser.parse_args()
 
 
@@ -426,6 +427,9 @@ if __name__ == "__main__":
     out_trajs_csv = out_fld / "clip_trajs.csv"
 
     Cls, Covs, samples = load_data(args.clips_npz, args.cov_npz)
+    assert set(samples) == set(args.sample_order), "samples != sample_order"
+    samples = args.sample_order
+
     Covs = coverage_comparison(Covs)
     Fs = safe_division(Cls, Covs, extra=np.nan)
 

@@ -94,6 +94,7 @@ rule plot_insertions:
         n_top_trajs=plot_config["insertions"]["n-top-trajs"],
         cov_window=plot_config["insertions"]["coverage-window"],
         cov_fraction=plot_config["insertions"]["coverage-fraction"],
+        samples_order=plot_config["insertions"]["samples-order"],
     conda:
         "../conda_envs/plots.yml"
     shell:
@@ -110,6 +111,7 @@ rule plot_insertions:
             --plot_fld {output.fld} \
             --cov_window {params.cov_window} \
             --cov_fraction {params.cov_fraction} \
+            --samples_order {params.samples_order}
         """
 
 
@@ -128,6 +130,7 @@ rule plot_clips:
         n_top_trajs=plot_config["clips"]["n-top-trajs"],
         cov_window=plot_config["clips"]["coverage-window"],
         cov_fraction=plot_config["clips"]["coverage-fraction"],
+        samples_order=lambda w: " ".join(pileups[w.ref_id]),
     conda:
         "../conda_envs/plots.yml"
     shell:
@@ -144,6 +147,7 @@ rule plot_clips:
             --plot_fld {output.fld} \
             --cov_window {params.cov_window} \
             --cov_fraction {params.cov_fraction} \
+            --samples_order {params.samples_order}
         """
 
 

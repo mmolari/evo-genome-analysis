@@ -54,6 +54,7 @@ def parse_args():
     parser.add_argument(
         "--plot_fld", type=str, help="output: folder where to save plots"
     )
+    parser.add_argument("--samples_order", nargs="+", type=str, help="order of samples")
     return parser.parse_args()
 
 
@@ -417,6 +418,8 @@ if __name__ == "__main__":
     print("creating tensors...")
     In, If, Cn, samples = insertion_arrays(Is, Cs)
     del Is, Cs
+    assert set(samples) == set(args.sample_order), "samples != sample_order"
+    samples = args.sample_order
 
     print("computing delta-frequency...")
     dF = relevant_deltaF(
