@@ -1,19 +1,12 @@
 run_config:
-  input: "test_data/input"
-  output: "test_data/output"
+  input: "test_data/input-test-leo"
+  output: "test_data/output-test-leo"
   pileups:
-    EC2D2_assembled:
-    - "EC2D2_1"
-    - "EC2D2_3"
-    - "EC2D2_5"
-    EM11_assembled:
-    - "EM11_1"
-    - "EM11_3"
-    - "EM11_5"
-    EM60_assembled:
-    - "EM60_1"
-    - "EM60_3"
-    - "EM60_5"
+    reference_ST131I:
+      - "sample1"
+      - "sample2"
+      - "sample3"
+      - "sample4"
 pileup:
   qual_min: 15
   clip_minL: 100
