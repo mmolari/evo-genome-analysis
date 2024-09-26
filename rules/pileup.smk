@@ -1,9 +1,41 @@
 pileup_config = config["pileup"]
 
 
+rule subsample:
+    message:
+        "Subsampling {input.reads} to {params.target_bp} using filtlong (or skipping subsampling)."
+    input:
+        reads=in_fld + "/reads/{sample_id}.fastq.gz",
+    output:
+        subsampled=out_fld + "/subsampled_reads/{sample_id}.fastq.gz",
+    params:
+        target_bp=pileup_config.get("subsample_target_bp", None),
+        min_length=2000,
+    conda:
+        "../conda_envs/pileup.yml"
+    shell:
+        """
+        if [ -z "{params.target_bp}" ]; then
+            # If no target_bp is set, just copy the original reads
+            cp {input.reads} {output.subsampled}
+        else
+            # Run filtlong to subsample the reads
+            filtlong \
+                --min_length {params.min_length} \
+                --target_bases {params.target_bp} \
+                {input.reads} \
+                | gzip > {output.subsampled}
+        fi
+        """
+
+
 rule map_reads:
     input:
-        fastq=in_fld + "/reads/{sample_id}.fastq.gz",
+        fastq=lambda wildcards: (
+            out_fld + "/subsampled_reads/{sample_id}.fastq.gz"
+            if pileup_config.get("subsample_target_bp")
+            else in_fld + "/reads/{sample_id}.fastq.gz"
+        ),
         ref=in_fld + "/references/{ref_id}.fa",
     output:
         sam=out_fld + "/mapped_reads/{ref_id}/{sample_id}.sam",
@@ -72,7 +104,9 @@ rule build_pileup:
     params:
         min_q=pileup_config["qual_min"],
         min_L=pileup_config["clip_minL"],
-        out_dir=lambda w: (out_fld + f"/pileup/{w.ref_id}/{w.rec_id}/{w.sample_id}").replace(" ", ""),
+        out_dir=lambda w: (
+            out_fld + f"/pileup/{w.ref_id}/{w.rec_id}/{w.sample_id}"
+        ).replace(" ", ""),
     conda:
         "../conda_envs/pileup.yml"
     shell:
