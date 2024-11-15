@@ -427,8 +427,8 @@ if __name__ == "__main__":
     out_trajs_csv = out_fld / "clip_trajs.csv"
 
     Cls, Covs, samples = load_data(args.clips_npz, args.cov_npz)
-    assert set(samples) == set(args.sample_order), "samples != sample_order"
-    samples = args.sample_order
+    assert set(samples) == set(args.samples_order), "samples != samples_order"
+    samples = args.samples_order
 
     Covs = coverage_comparison(Covs)
     Fs = safe_division(Cls, Covs, extra=np.nan)

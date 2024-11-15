@@ -418,8 +418,8 @@ if __name__ == "__main__":
     print("creating tensors...")
     In, If, Cn, samples = insertion_arrays(Is, Cs)
     del Is, Cs
-    assert set(samples) == set(args.sample_order), "samples != sample_order"
-    samples = args.sample_order
+    assert set(samples) == set(args.samples_order), "samples != samples_order"
+    samples = args.samples_order
 
     print("computing delta-frequency...")
     dF = relevant_deltaF(
