@@ -19,7 +19,7 @@ rule concat_positions:
         """
 
 
-rule assing_annotations:
+rule assign_annotations:
     input:
         ref=in_fld + "/references/{ref_id}.gbk",
         pos=rules.concat_positions.output,
@@ -43,7 +43,7 @@ rule annotate_all:
     input:
         [
             expand(
-                rules.assing_annotations.output,
+                rules.assign_annotations.output,
                 ref_id=ref,
                 rec_id=ref_records[ref],
             )

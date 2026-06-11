@@ -124,9 +124,9 @@ rule plot_clips:
     params:
         freq_thr=plot_config["clips"]["freq-threshold"],
         cov_thr=plot_config["clips"]["coverage-threshold"],
-        noise_thr=plot_config["insertions"]["fwd-rev-noise-threshold"],
-        noise_tol=plot_config["insertions"]["fwd-rev-noise-tolerance"],
-        max_initial_freq=plot_config["insertions"]["max-initial-freq"],
+        noise_thr=plot_config["clips"]["fwd-rev-noise-threshold"],
+        noise_tol=plot_config["clips"]["fwd-rev-noise-tolerance"],
+        max_initial_freq=plot_config["clips"]["max-initial-freq"],
         n_top_trajs=plot_config["clips"]["n-top-trajs"],
         cov_window=plot_config["clips"]["coverage-window"],
         cov_fraction=plot_config["clips"]["coverage-fraction"],

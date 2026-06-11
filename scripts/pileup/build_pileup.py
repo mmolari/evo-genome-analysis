@@ -168,8 +168,8 @@ def dump_allele_counts(dirname, ac, suffix=""):
         print(("creating directory", dirname))
         try:
             os.mkdir(dirname)
-        except:
-            raise "creating directory failed"
+        except OSError as err:
+            raise OSError(f"creating directory failed: {dirname}") from err
 
     refname, ac_array, insertions, clips, clip_seqs = ac
     np.savez_compressed(dirname + "allele_counts" + suffix + ".npz", pileup=ac_array)
